@@ -1,29 +1,13 @@
 import { useState, useEffect } from 'react';
-import { BatteryStatus, ChargingSpeed } from '@/types/battery';
+import { BatteryStatus } from '@/types/battery';
 import { useToast } from '@/components/ui/use-toast';
+import { determineChargingSpeed, checkRapidDischarge } from '@/utils/batteryUtils';
 
 export const useBattery = () => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastLevel, setLastLevel] = useState<number | null>(null);
   const { toast } = useToast();
-
-  const determineChargingSpeed = (chargingTime: number): ChargingSpeed => {
-    // These thresholds are estimates and may need adjustment
-    // Lower charging time means faster charging
-    if (chargingTime === Infinity) return 'normal';
-    if (chargingTime <= 3000) return 'supercharge';
-    if (chargingTime <= 5000) return 'fast';
-    if (chargingTime <= 7000) return 'normal';
-    return 'slow';
-  };
-
-  const checkRapidDischarge = (currentLevel: number, previousLevel: number | null) => {
-    if (previousLevel === null) return false;
-    // Consider it rapid discharge if battery drops more than 2% in a minute
-    const dischargeRate = previousLevel - currentLevel;
-    return dischargeRate >= 2;
-  };
 
   useEffect(() => {
     const getBattery = async () => {
