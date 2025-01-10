@@ -1,7 +1,8 @@
 import React from 'react';
-import { Battery, Plane, Zap } from 'lucide-react';
+import { Battery, Plane, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useBattery } from '@/hooks/useBattery';
 import { cn } from '@/lib/utils';
 
@@ -54,7 +55,7 @@ export const BatteryMonitor = () => {
     );
   }
 
-  const { charging, level, chargingSpeed } = batteryStatus;
+  const { charging, level, chargingSpeed, isRapidDischarge } = batteryStatus;
 
   return (
     <Card className="w-full max-w-md mx-auto p-6 space-y-6">
@@ -78,6 +79,23 @@ export const BatteryMonitor = () => {
           <span className="text-discharging">Discharging</span>
         )}
       </div>
+
+      {isRapidDischarge && (
+        <Alert variant="destructive" className="animate-fade-in">
+          <X className="h-4 w-4" />
+          <AlertTitle>High Battery Drain Detected</AlertTitle>
+          <AlertDescription>
+            Consider closing these types of apps:
+            <ul className="list-disc list-inside mt-2">
+              <li>Video streaming apps</li>
+              <li>Gaming apps</li>
+              <li>GPS navigation</li>
+              <li>Video conferencing apps</li>
+              <li>Apps using camera or flashlight</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {charging && (
         <div className="space-y-4">

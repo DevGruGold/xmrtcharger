@@ -6,4 +6,5 @@ export interface BatteryStatus {
   chargingTime: number;
   dischargingTime: number;
   chargingSpeed?: ChargingSpeed;
+  isRapidDischarge?: boolean;
 }

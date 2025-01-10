@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 export const useBattery = () => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastLevel, setLastLevel] = useState<number | null>(null);
   const { toast } = useToast();
 
   const determineChargingSpeed = (chargingTime: number): ChargingSpeed => {
@@ -17,6 +18,13 @@ export const useBattery = () => {
     return 'slow';
   };
 
+  const checkRapidDischarge = (currentLevel: number, previousLevel: number | null) => {
+    if (previousLevel === null) return false;
+    // Consider it rapid discharge if battery drops more than 2% in a minute
+    const dischargeRate = previousLevel - currentLevel;
+    return dischargeRate >= 2;
+  };
+
   useEffect(() => {
     const getBattery = async () => {
       try {
@@ -25,13 +33,25 @@ export const useBattery = () => {
         
         const updateBatteryStatus = () => {
           const chargingSpeed = battery.charging ? determineChargingSpeed(battery.chargingTime) : undefined;
+          const currentLevel = battery.level * 100;
+          
+          if (!battery.charging && checkRapidDischarge(currentLevel, lastLevel)) {
+            toast({
+              title: "Rapid Battery Discharge Detected!",
+              description: "Consider closing high-power apps like games, video streaming, or GPS navigation to preserve battery life.",
+              duration: 8000,
+            });
+          }
+
+          setLastLevel(currentLevel);
           
           setBatteryStatus({
             charging: battery.charging,
-            level: battery.level * 100,
+            level: currentLevel,
             chargingTime: battery.chargingTime,
             dischargingTime: battery.dischargingTime,
-            chargingSpeed
+            chargingSpeed,
+            isRapidDischarge: !battery.charging && checkRapidDischarge(currentLevel, lastLevel)
           });
 
           if (battery.charging) {
@@ -52,11 +72,15 @@ export const useBattery = () => {
         battery.addEventListener('chargingtimechange', updateBatteryStatus);
         battery.addEventListener('dischargingtimechange', updateBatteryStatus);
 
+        // Set up periodic discharge rate check (every minute)
+        const intervalId = setInterval(updateBatteryStatus, 60000);
+
         return () => {
           battery.removeEventListener('chargingchange', updateBatteryStatus);
           battery.removeEventListener('levelchange', updateBatteryStatus);
           battery.removeEventListener('chargingtimechange', updateBatteryStatus);
           battery.removeEventListener('dischargingtimechange', updateBatteryStatus);
+          clearInterval(intervalId);
         };
       } catch (err) {
         setError('Battery API not supported in this browser');
@@ -65,7 +89,7 @@ export const useBattery = () => {
     };
 
     getBattery();
-  }, [toast]);
+  }, [toast, lastLevel]);
 
   return { batteryStatus, error };
 };
