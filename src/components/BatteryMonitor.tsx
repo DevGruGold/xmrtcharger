@@ -5,6 +5,36 @@ import { Card } from '@/components/ui/card';
 import { useBattery } from '@/hooks/useBattery';
 import { cn } from '@/lib/utils';
 
+const getChargingSpeedAnimation = (speed?: string) => {
+  switch (speed) {
+    case 'supercharge':
+      return 'animate-[pulse_0.5s_ease-in-out_infinite]';
+    case 'fast':
+      return 'animate-[pulse_1s_ease-in-out_infinite]';
+    case 'normal':
+      return 'animate-[pulse_2s_ease-in-out_infinite]';
+    case 'slow':
+      return 'animate-[pulse_3s_ease-in-out_infinite]';
+    default:
+      return '';
+  }
+};
+
+const getChargingSpeedColor = (speed?: string) => {
+  switch (speed) {
+    case 'supercharge':
+      return 'text-purple-500';
+    case 'fast':
+      return 'text-blue-500';
+    case 'normal':
+      return 'text-charging';
+    case 'slow':
+      return 'text-yellow-500';
+    default:
+      return 'text-discharging';
+  }
+};
+
 export const BatteryMonitor = () => {
   const { batteryStatus, error } = useBattery();
 
@@ -24,14 +54,15 @@ export const BatteryMonitor = () => {
     );
   }
 
-  const { charging, level } = batteryStatus;
+  const { charging, level, chargingSpeed } = batteryStatus;
 
   return (
     <Card className="w-full max-w-md mx-auto p-6 space-y-6">
       <div className="flex items-center justify-center space-x-4">
         <Battery className={cn(
           "w-12 h-12",
-          charging ? "text-charging animate-pulse-slow" : "text-discharging"
+          charging ? getChargingSpeedColor(chargingSpeed) : "text-discharging",
+          charging && getChargingSpeedAnimation(chargingSpeed)
         )} />
         <div className="text-2xl font-bold">
           {level.toFixed(1)}%
@@ -40,7 +71,9 @@ export const BatteryMonitor = () => {
 
       <div className="text-center text-lg font-medium">
         Status: {charging ? (
-          <span className="text-charging">Charging</span>
+          <span className={getChargingSpeedColor(chargingSpeed)}>
+            {chargingSpeed?.charAt(0).toUpperCase()}{chargingSpeed?.slice(1)} Charging
+          </span>
         ) : (
           <span className="text-discharging">Discharging</span>
         )}
