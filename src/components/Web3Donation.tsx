@@ -1,8 +1,11 @@
 import { useWeb3Modal } from '@web3modal/react';
-import { useAccount, useConnect, useDisconnect, useBalance } from 'wagmi';
+import { useAccount, useConnect, useDisconnect, useBalance, usePrepareSendTransaction, useSendTransaction } from 'wagmi';
+import { parseEther } from 'viem';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+const DONATION_ADDRESS = "0xda6b8FbB45616F6F3b96C033De705b2b8cb8Cb08";
 
 export const Web3Donation = () => {
   const { open } = useWeb3Modal();
@@ -11,6 +14,13 @@ export const Web3Donation = () => {
   const { data: balance } = useBalance({
     address,
   });
+
+  const { config } = usePrepareSendTransaction({
+    to: DONATION_ADDRESS,
+    value: parseEther('0.01'), // Default donation amount of 0.01 ETH
+  });
+
+  const { sendTransaction } = useSendTransaction(config);
 
   const handleConnect = async () => {
     try {
@@ -27,11 +37,13 @@ export const Web3Donation = () => {
     }
     
     try {
-      // For demonstration, we'll just show a success message
-      // In a real app, you would implement the actual donation transaction here
-      toast.success("Thank you for supporting a free web3!");
+      const tx = await sendTransaction?.();
+      if (tx) {
+        toast.success("Thank you for your donation!");
+      }
     } catch (error) {
       toast.error("Failed to process donation");
+      console.error(error);
     }
   };
 
@@ -54,7 +66,7 @@ export const Web3Donation = () => {
             )}
             <div className="flex gap-4">
               <Button onClick={handleDonate} className="flex-1">
-                Donate
+                Donate 0.01 ETH
               </Button>
               <Button onClick={() => disconnect()} variant="outline" className="flex-1">
                 Disconnect
