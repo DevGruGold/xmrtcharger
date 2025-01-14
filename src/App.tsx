@@ -12,7 +12,7 @@ import Index from "./pages/Index";
 const queryClient = new QueryClient();
 
 // Configure Web3Modal
-const projectId = 'YOUR_WALLETCONNECT_PROJECT_ID'; // You'll need to get this from WalletConnect
+const projectId = 'c7d929435fc16c0e4bd0363b29708dd2';
 
 const { chains, publicClient } = configureChains(
   [mainnet],
