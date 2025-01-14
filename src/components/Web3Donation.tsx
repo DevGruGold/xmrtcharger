@@ -37,10 +37,13 @@ export const Web3Donation = () => {
     }
     
     try {
-      const tx = await sendTransaction?.();
-      if (tx) {
-        toast.success("Thank you for your donation!");
+      if (!sendTransaction) {
+        toast.error("Transaction not ready");
+        return;
       }
+      
+      await sendTransaction();
+      toast.success("Thank you for your donation!");
     } catch (error) {
       toast.error("Failed to process donation");
       console.error(error);
