@@ -12,18 +12,18 @@ export const BatteryStatusDisplay = ({ batteryStatus }: BatteryStatusProps) => {
 
   return (
     <>
-      <div className="flex items-center justify-center space-x-4">
+      <div className="flex items-center justify-center space-x-3 sm:space-x-4">
         <Battery className={cn(
-          "w-12 h-12",
+          "w-10 h-10 sm:w-12 sm:h-12",
           charging ? getChargingSpeedColor(chargingSpeed) : "text-discharging",
           charging && getChargingSpeedAnimation(chargingSpeed)
         )} />
-        <div className="text-2xl font-bold">
+        <div className="text-xl sm:text-2xl md:text-3xl font-bold">
           {level.toFixed(1)}%
         </div>
       </div>
 
-      <div className="text-center text-lg font-medium">
+      <div className="text-center text-base sm:text-lg font-medium">
         Status: {charging ? (
           <span className={getChargingSpeedColor(chargingSpeed)}>
             {chargingSpeed?.charAt(0).toUpperCase()}{chargingSpeed?.slice(1)} Charging

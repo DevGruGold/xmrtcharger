@@ -71,8 +71,8 @@ export const BatteryMonitorEnhanced = () => {
   // Show device info and browser compatibility first
   if (!deviceInfo) {
     return (
-      <Card className="w-full max-w-4xl mx-auto p-6">
-        <div className="text-center">Detecting device...</div>
+      <Card className="w-full max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="text-center text-sm sm:text-base">Detecting device...</div>
       </Card>
     );
   }
@@ -83,9 +83,9 @@ export const BatteryMonitorEnhanced = () => {
     const chargingTips = getChargingOptimizationTips(deviceInfo.deviceType);
     
     return (
-      <div className="w-full max-w-4xl mx-auto space-y-6">
-        <Card className="p-6">
-          <div className="space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <Card className="p-4 sm:p-6">
+          <div className="space-y-4 sm:space-y-6">
             <DeviceDetector
               deviceType={deviceInfo.deviceType}
               os={deviceInfo.os}
@@ -115,8 +115,8 @@ export const BatteryMonitorEnhanced = () => {
 
   if (!batteryStatus || !health) {
     return (
-      <Card className="w-full max-w-4xl mx-auto p-6">
-        <div className="text-center">Loading battery information...</div>
+      <Card className="w-full max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="text-center text-sm sm:text-base">Loading battery information...</div>
       </Card>
     );
   }
@@ -125,8 +125,8 @@ export const BatteryMonitorEnhanced = () => {
   const chargingTips = getChargingOptimizationTips(deviceInfo.deviceType);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card className="p-6">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <Card className="p-4 sm:p-6">
         <DeviceDetector
           deviceType={deviceInfo.deviceType}
           os={deviceInfo.os}
@@ -134,30 +134,30 @@ export const BatteryMonitorEnhanced = () => {
         />
       </Card>
       
-      <Card className="p-6">
-        <Tabs defaultValue="monitor" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="monitor">Monitor</TabsTrigger>
-            <TabsTrigger value="visualize">Visualize</TabsTrigger>
-            <TabsTrigger value="optimize">Optimize</TabsTrigger>
-            <TabsTrigger value="device">Device Tips</TabsTrigger>
-            <TabsTrigger value="health">Health</TabsTrigger>
+      <Card className="p-3 sm:p-4 md:p-6">
+        <Tabs defaultValue="monitor" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-5 h-auto gap-1 p-1">
+            <TabsTrigger value="monitor" className="text-xs sm:text-sm px-1 sm:px-3 py-2">Monitor</TabsTrigger>
+            <TabsTrigger value="visualize" className="text-xs sm:text-sm px-1 sm:px-3 py-2">Visual</TabsTrigger>
+            <TabsTrigger value="optimize" className="text-xs sm:text-sm px-1 sm:px-3 py-2">Optimize</TabsTrigger>
+            <TabsTrigger value="device" className="text-xs sm:text-sm px-1 sm:px-3 py-2">Tips</TabsTrigger>
+            <TabsTrigger value="health" className="text-xs sm:text-sm px-1 sm:px-3 py-2">Health</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="monitor" className="space-y-6">
+          <TabsContent value="monitor" className="space-y-4 sm:space-y-6">
             <BatteryStatusDisplay batteryStatus={batteryStatus} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <TemperatureGauge temperatureImpact={health.temperatureImpact} />
               <PortQualityIndicator portQuality={health.portQuality} />
             </div>
           </TabsContent>
 
-        <TabsContent value="visualize" className="space-y-6">
+        <TabsContent value="visualize" className="space-y-4 sm:space-y-6">
           <BatteryVisualization batteryStatus={batteryStatus} />
           <ChargingGraph />
         </TabsContent>
 
-          <TabsContent value="optimize" className="space-y-6">
+          <TabsContent value="optimize" className="space-y-4 sm:space-y-6">
             <ChargingModeSelector
               selectedMode={selectedMode}
               onModeSelect={setSelectedMode}
@@ -169,7 +169,7 @@ export const BatteryMonitorEnhanced = () => {
             />
           </TabsContent>
 
-          <TabsContent value="device" className="space-y-6">
+          <TabsContent value="device" className="space-y-4 sm:space-y-6">
             <DeviceSpecificTips
               tips={deviceTips}
               title="Battery Optimization Tips"
@@ -184,7 +184,7 @@ export const BatteryMonitorEnhanced = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="health" className="space-y-6">
+          <TabsContent value="health" className="space-y-4 sm:space-y-6">
             <HealthReportCard health={health} showTrend />
             <IssueDetectionPanel issues={issues} />
             <BatteryDiagnostics health={health} />

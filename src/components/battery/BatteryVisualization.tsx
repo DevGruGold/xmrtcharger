@@ -38,13 +38,13 @@ export const BatteryVisualization = ({ batteryStatus }: BatteryVisualizationProp
   };
 
   return (
-    <div className="relative flex flex-col items-center gap-6 p-8">
+    <div className="relative flex flex-col items-center gap-4 sm:gap-6 p-4 sm:p-8">
       {/* 3D Battery Container */}
-      <div className="relative w-48 h-72">
+      <div className="relative w-32 h-48 sm:w-40 sm:h-60 md:w-48 md:h-72">
         {/* Battery Shell */}
-        <div className="absolute inset-0 rounded-2xl border-4 border-border bg-card overflow-hidden shadow-2xl">
+        <div className="absolute inset-0 rounded-xl sm:rounded-2xl border-2 sm:border-4 border-border bg-card overflow-hidden shadow-2xl">
           {/* Battery Terminal */}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-4 bg-border rounded-t-lg" />
+          <div className="absolute -top-2 sm:-top-4 left-1/2 -translate-x-1/2 w-10 h-2 sm:w-16 sm:h-4 bg-border rounded-t-lg" />
           
           {/* Liquid Fill with Gradient */}
           <div 
@@ -81,7 +81,7 @@ export const BatteryVisualization = ({ batteryStatus }: BatteryVisualizationProp
 
           {/* Percentage Display */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl font-bold text-foreground mix-blend-difference">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mix-blend-difference">
               {level}%
             </span>
           </div>
@@ -116,14 +116,13 @@ export const BatteryVisualization = ({ batteryStatus }: BatteryVisualizationProp
 
       {/* Lightning Bolts Animation */}
       {charging && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <Zap 
-            className={`${getChargingSpeedColor(chargingSpeed)} animate-lightning-strike`}
+            className={`${getChargingSpeedColor(chargingSpeed)} animate-lightning-strike w-6 h-6 sm:w-8 sm:h-8`}
             style={{ animationDuration: getAnimationSpeed() }}
-            size={32}
             fill="currentColor"
           />
-          <div className="text-sm font-medium text-muted-foreground">
+          <div className="text-xs sm:text-sm font-medium text-muted-foreground">
             {chargingSpeed === 'supercharge' && 'Supercharging'}
             {chargingSpeed === 'fast' && 'Fast Charging'}
             {chargingSpeed === 'normal' && 'Charging'}
@@ -133,8 +132,8 @@ export const BatteryVisualization = ({ batteryStatus }: BatteryVisualizationProp
       )}
 
       {/* Status Indicator */}
-      <div className="flex items-center gap-2 text-sm">
-        <Battery className={charging ? 'text-charging' : 'text-muted-foreground'} size={20} />
+      <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+        <Battery className={`${charging ? 'text-charging' : 'text-muted-foreground'} w-4 h-4 sm:w-5 sm:h-5`} />
         <span className="text-muted-foreground">
           {charging ? 'Connected to power' : 'On battery'}
         </span>
