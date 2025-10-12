@@ -9,11 +9,13 @@ import { OptimizationCoach } from './battery/OptimizationCoach';
 import { BatteryDiagnostics } from './battery/BatteryDiagnostics';
 import { BatteryVisualization } from './battery/BatteryVisualization';
 import { ChargingGraph } from './battery/ChargingGraph';
-
 import { IssueDetectionPanel } from './battery/IssueDetectionPanel';
 import { HealthReportCard } from './battery/HealthReportCard';
 import { TemperatureGauge } from './battery/TemperatureGauge';
 import { PortQualityIndicator } from './battery/PortQualityIndicator';
+import { DeviceDetector } from './battery/DeviceDetector';
+import { BrowserCompatibilityChecker } from './battery/BrowserCompatibilityChecker';
+import { DeviceSpecificTips } from './battery/DeviceSpecificTips';
 import { ChargingMode, OptimizationTask, BatteryHealthMetrics } from '@/types/battery';
 import { getChargingHistory } from '@/utils/batteryHistory';
 import {
@@ -24,9 +26,10 @@ import {
   analyzeTemperatureImpact,
 } from '@/utils/batteryHealth';
 import { detectBatteryIssues } from '@/utils/issueDetection';
+import { getDeviceSpecificTips, getChargingOptimizationTips } from '@/utils/deviceOptimization';
 
 export const BatteryMonitorEnhanced = () => {
-  const { batteryStatus, error } = useBattery();
+  const { batteryStatus, deviceInfo, error } = useBattery();
   const [selectedMode, setSelectedMode] = useState<ChargingMode>('turbo');
   const [tasks, setTasks] = useState<OptimizationTask[]>([]);
   const [health, setHealth] = useState<BatteryHealthMetrics | null>(null);
@@ -65,11 +68,48 @@ export const BatteryMonitorEnhanced = () => {
     );
   };
 
-  if (error) {
+  // Show device info and browser compatibility first
+  if (!deviceInfo) {
     return (
       <Card className="w-full max-w-4xl mx-auto p-6">
-        <div className="text-center text-red-500">{error}</div>
+        <div className="text-center">Detecting device...</div>
       </Card>
+    );
+  }
+
+  // If battery API not supported, show compatibility info and educational content
+  if (error || !deviceInfo.batterySupported) {
+    const deviceTips = getDeviceSpecificTips(deviceInfo.deviceType);
+    const chargingTips = getChargingOptimizationTips(deviceInfo.deviceType);
+    
+    return (
+      <div className="w-full max-w-4xl mx-auto space-y-6">
+        <Card className="p-6">
+          <div className="space-y-6">
+            <DeviceDetector
+              deviceType={deviceInfo.deviceType}
+              os={deviceInfo.os}
+              browser={deviceInfo.browser}
+            />
+            <BrowserCompatibilityChecker
+              browser={deviceInfo.browser}
+              supported={deviceInfo.batterySupported}
+              message={deviceInfo.browserInfo.message}
+              recommendation={deviceInfo.browserInfo.recommendation}
+            />
+          </div>
+        </Card>
+        <DeviceSpecificTips
+          tips={deviceTips}
+          title="Battery Optimization Tips"
+          description={`Recommended for your ${deviceInfo.deviceType === 'pc' ? 'laptop/desktop' : deviceInfo.deviceType}`}
+        />
+        <DeviceSpecificTips
+          tips={chargingTips}
+          title="Charging Optimization Tips"
+          description="Best practices when charging your device"
+        />
+      </div>
     );
   }
 
@@ -81,47 +121,76 @@ export const BatteryMonitorEnhanced = () => {
     );
   }
 
-  return (
-    <Card className="w-full max-w-4xl mx-auto p-6">
-      <Tabs defaultValue="monitor" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="monitor">Monitor</TabsTrigger>
-          <TabsTrigger value="visualize">Visualize</TabsTrigger>
-          <TabsTrigger value="optimize">Optimize</TabsTrigger>
-          <TabsTrigger value="health">Health</TabsTrigger>
-        </TabsList>
+  const deviceTips = getDeviceSpecificTips(deviceInfo.deviceType);
+  const chargingTips = getChargingOptimizationTips(deviceInfo.deviceType);
 
-        <TabsContent value="monitor" className="space-y-6">
-          <BatteryStatusDisplay batteryStatus={batteryStatus} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TemperatureGauge temperatureImpact={health.temperatureImpact} />
-            <PortQualityIndicator portQuality={health.portQuality} />
-          </div>
-        </TabsContent>
+  return (
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <Card className="p-6">
+        <DeviceDetector
+          deviceType={deviceInfo.deviceType}
+          os={deviceInfo.os}
+          browser={deviceInfo.browser}
+        />
+      </Card>
+      
+      <Card className="p-6">
+        <Tabs defaultValue="monitor" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="monitor">Monitor</TabsTrigger>
+            <TabsTrigger value="visualize">Visualize</TabsTrigger>
+            <TabsTrigger value="optimize">Optimize</TabsTrigger>
+            <TabsTrigger value="device">Device Tips</TabsTrigger>
+            <TabsTrigger value="health">Health</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="monitor" className="space-y-6">
+            <BatteryStatusDisplay batteryStatus={batteryStatus} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TemperatureGauge temperatureImpact={health.temperatureImpact} />
+              <PortQualityIndicator portQuality={health.portQuality} />
+            </div>
+          </TabsContent>
 
         <TabsContent value="visualize" className="space-y-6">
           <BatteryVisualization batteryStatus={batteryStatus} />
           <ChargingGraph />
         </TabsContent>
 
-        <TabsContent value="optimize" className="space-y-6">
-          <ChargingModeSelector
-            selectedMode={selectedMode}
-            onModeSelect={setSelectedMode}
-          />
-          <OptimizationCoach
-            tasks={tasks}
-            onTaskToggle={handleTaskToggle}
-            mode={selectedMode}
-          />
-        </TabsContent>
+          <TabsContent value="optimize" className="space-y-6">
+            <ChargingModeSelector
+              selectedMode={selectedMode}
+              onModeSelect={setSelectedMode}
+            />
+            <OptimizationCoach
+              tasks={tasks}
+              onTaskToggle={handleTaskToggle}
+              mode={selectedMode}
+            />
+          </TabsContent>
 
-        <TabsContent value="health" className="space-y-6">
-          <HealthReportCard health={health} showTrend />
-          <IssueDetectionPanel issues={issues} />
-          <BatteryDiagnostics health={health} />
-        </TabsContent>
-      </Tabs>
-    </Card>
+          <TabsContent value="device" className="space-y-6">
+            <DeviceSpecificTips
+              tips={deviceTips}
+              title="Battery Optimization Tips"
+              description={`Tailored for your ${deviceInfo.deviceType === 'pc' ? 'laptop/desktop' : deviceInfo.deviceType}`}
+            />
+            {batteryStatus.charging && (
+              <DeviceSpecificTips
+                tips={chargingTips}
+                title="Charging Optimization Tips"
+                description="Speed up charging and protect battery health"
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="health" className="space-y-6">
+            <HealthReportCard health={health} showTrend />
+            <IssueDetectionPanel issues={issues} />
+            <BatteryDiagnostics health={health} />
+          </TabsContent>
+        </Tabs>
+      </Card>
+    </div>
   );
 };

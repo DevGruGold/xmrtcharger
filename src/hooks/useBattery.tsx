@@ -1,17 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BatteryStatus, ChargingSession, ChargingSpeed } from '@/types/battery';
+import { BatteryStatus, ChargingSession, ChargingSpeed, DeviceInfo } from '@/types/battery';
 import { useToast } from '@/components/ui/use-toast';
 import { determineChargingSpeed, checkRapidDischarge } from '@/utils/batteryUtils';
 import { saveChargingSession } from '@/utils/batteryHistory';
 import { calculateChargingEfficiency } from '@/utils/batteryHealth';
+import { getDeviceInfo } from '@/utils/deviceDetection';
 
 export const useBattery = () => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastLevel, setLastLevel] = useState<number | null>(null);
   const [chargingStartTime, setChargingStartTime] = useState<number | null>(null);
   const [chargingStartLevel, setChargingStartLevel] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Detect device info on mount
+  useEffect(() => {
+    const info = getDeviceInfo();
+    setDeviceInfo(info);
+  }, []);
 
   const saveSession = useCallback((currentLevel: number, speed: ChargingSpeed) => {
     if (chargingStartTime && chargingStartLevel !== null) {
@@ -108,5 +116,5 @@ export const useBattery = () => {
     getBattery();
   }, [toast, lastLevel, chargingStartTime, saveSession]);
 
-  return { batteryStatus, error };
+  return { batteryStatus, deviceInfo, error };
 };

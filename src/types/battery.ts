@@ -1,4 +1,6 @@
 export type ChargingSpeed = 'slow' | 'normal' | 'fast' | 'supercharge';
+export type DeviceType = 'pc' | 'tablet' | 'phone' | 'unknown';
+export type BrowserType = 'chrome' | 'firefox' | 'safari' | 'edge' | 'opera' | 'unknown';
 
 export interface BatteryStatus {
   charging: boolean;
@@ -7,6 +9,20 @@ export interface BatteryStatus {
   dischargingTime: number;
   chargingSpeed?: ChargingSpeed;
   isRapidDischarge?: boolean;
+}
+
+export interface BrowserCompatibility {
+  supported: boolean;
+  message: string;
+  recommendation: string | null;
+}
+
+export interface DeviceInfo {
+  deviceType: DeviceType;
+  browser: BrowserType;
+  os: string;
+  batterySupported: boolean;
+  browserInfo: BrowserCompatibility;
 }
 
 export interface BatteryHealthMetrics {
