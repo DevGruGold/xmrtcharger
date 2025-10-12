@@ -7,6 +7,13 @@ import { BatteryHealthScore } from './battery/BatteryHealthScore';
 import { ChargingModeSelector } from './battery/ChargingModeSelector';
 import { OptimizationCoach } from './battery/OptimizationCoach';
 import { BatteryDiagnostics } from './battery/BatteryDiagnostics';
+import { BatteryVisualization } from './battery/BatteryVisualization';
+import { ChargingGraph } from './battery/ChargingGraph';
+import { DiagnosticScanner } from './battery/DiagnosticScanner';
+import { IssueDetectionPanel } from './battery/IssueDetectionPanel';
+import { HealthReportCard } from './battery/HealthReportCard';
+import { TemperatureGauge } from './battery/TemperatureGauge';
+import { PortQualityIndicator } from './battery/PortQualityIndicator';
 import { ChargingMode, OptimizationTask, BatteryHealthMetrics } from '@/types/battery';
 import { getChargingHistory } from '@/utils/batteryHistory';
 import {
@@ -16,12 +23,15 @@ import {
   detectPortQuality,
   analyzeTemperatureImpact,
 } from '@/utils/batteryHealth';
+import { detectBatteryIssues } from '@/utils/issueDetection';
 
 export const BatteryMonitorEnhanced = () => {
   const { batteryStatus, error } = useBattery();
   const [selectedMode, setSelectedMode] = useState<ChargingMode>('turbo');
   const [tasks, setTasks] = useState<OptimizationTask[]>([]);
   const [health, setHealth] = useState<BatteryHealthMetrics | null>(null);
+  const [isScanning, setIsScanning] = useState(true);
+  const [issues, setIssues] = useState<any[]>([]);
 
   useEffect(() => {
     // Calculate health metrics from history
@@ -32,14 +42,20 @@ export const BatteryMonitorEnhanced = () => {
       ? history.slice(-5).reduce((sum, s) => sum + s.efficiency, 0) / Math.min(5, history.length)
       : 75;
 
-    setHealth({
+    const healthMetrics = {
       healthScore,
       degradationLevel: getDegradationLevel(healthScore),
       averageChargingSpeed: avgSpeed,
       chargingEfficiency: Math.round(efficiency),
       temperatureImpact: analyzeTemperatureImpact(efficiency),
       portQuality: detectPortQuality(history),
-    });
+    };
+
+    setHealth(healthMetrics);
+    
+    // Detect issues
+    const detectedIssues = detectBatteryIssues(healthMetrics, history);
+    setIssues(detectedIssues);
   }, [batteryStatus]);
 
   const handleTaskToggle = (taskId: string) => {
@@ -66,18 +82,35 @@ export const BatteryMonitorEnhanced = () => {
     );
   }
 
+  if (isScanning) {
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <DiagnosticScanner onComplete={() => setIsScanning(false)} />
+      </div>
+    );
+  }
+
   return (
     <Card className="w-full max-w-4xl mx-auto p-6">
       <Tabs defaultValue="monitor" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="monitor">Monitor</TabsTrigger>
+          <TabsTrigger value="visualize">Visualize</TabsTrigger>
           <TabsTrigger value="optimize">Optimize</TabsTrigger>
           <TabsTrigger value="health">Health</TabsTrigger>
         </TabsList>
 
         <TabsContent value="monitor" className="space-y-6">
           <BatteryStatusDisplay batteryStatus={batteryStatus} />
-          <BatteryHealthScore health={health} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TemperatureGauge temperatureImpact={health.temperatureImpact} />
+            <PortQualityIndicator portQuality={health.portQuality} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="visualize" className="space-y-6">
+          <BatteryVisualization batteryStatus={batteryStatus} />
+          <ChargingGraph />
         </TabsContent>
 
         <TabsContent value="optimize" className="space-y-6">
@@ -93,7 +126,8 @@ export const BatteryMonitorEnhanced = () => {
         </TabsContent>
 
         <TabsContent value="health" className="space-y-6">
-          <BatteryHealthScore health={health} />
+          <HealthReportCard health={health} showTrend />
+          <IssueDetectionPanel issues={issues} />
           <BatteryDiagnostics health={health} />
         </TabsContent>
       </Tabs>

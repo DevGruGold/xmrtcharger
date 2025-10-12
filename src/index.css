@@ -34,6 +34,17 @@
 
     --radius: 0.5rem;
 
+    --battery-critical: 0 84% 60%;
+    --battery-low: 38 92% 50%;
+    --battery-medium: 142 71% 45%;
+    --battery-high: 142 76% 36%;
+    --battery-full: 142 76% 36%;
+    
+    --charging-super: 280 100% 70%;
+    --charging-fast: 217 91% 60%;
+    --charging-normal: 142 71% 45%;
+    --charging-slow: 38 92% 50%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
