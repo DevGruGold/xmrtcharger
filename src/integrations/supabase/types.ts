@@ -249,6 +249,256 @@ export type Database = {
         }
         Relationships: []
       }
+      battery_health_snapshots: {
+        Row: {
+          assessed_at: string
+          average_charging_speed: string | null
+          charging_efficiency: number | null
+          charging_streak_days: number | null
+          created_at: string
+          degradation_level: string | null
+          device_id: string
+          health_score: number
+          id: string
+          metadata: Json | null
+          port_quality: string | null
+          recommendations: Json | null
+          temperature_impact: string | null
+          total_charging_sessions: number | null
+        }
+        Insert: {
+          assessed_at?: string
+          average_charging_speed?: string | null
+          charging_efficiency?: number | null
+          charging_streak_days?: number | null
+          created_at?: string
+          degradation_level?: string | null
+          device_id: string
+          health_score: number
+          id?: string
+          metadata?: Json | null
+          port_quality?: string | null
+          recommendations?: Json | null
+          temperature_impact?: string | null
+          total_charging_sessions?: number | null
+        }
+        Update: {
+          assessed_at?: string
+          average_charging_speed?: string | null
+          charging_efficiency?: number | null
+          charging_streak_days?: number | null
+          created_at?: string
+          degradation_level?: string | null
+          device_id?: string
+          health_score?: number
+          id?: string
+          metadata?: Json | null
+          port_quality?: string | null
+          recommendations?: Json | null
+          temperature_impact?: string | null
+          total_charging_sessions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battery_health_snapshots_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battery_readings: {
+        Row: {
+          battery_level: number
+          charging_speed: string | null
+          charging_time_remaining: number | null
+          created_at: string
+          device_id: string
+          discharging_time_remaining: number | null
+          id: string
+          is_charging: boolean
+          metadata: Json | null
+          session_id: string
+          temperature_impact: string | null
+          timestamp: string
+        }
+        Insert: {
+          battery_level: number
+          charging_speed?: string | null
+          charging_time_remaining?: number | null
+          created_at?: string
+          device_id: string
+          discharging_time_remaining?: number | null
+          id?: string
+          is_charging?: boolean
+          metadata?: Json | null
+          session_id: string
+          temperature_impact?: string | null
+          timestamp?: string
+        }
+        Update: {
+          battery_level?: number
+          charging_speed?: string | null
+          charging_time_remaining?: number | null
+          created_at?: string
+          device_id?: string
+          discharging_time_remaining?: number | null
+          id?: string
+          is_charging?: boolean
+          metadata?: Json | null
+          session_id?: string
+          temperature_impact?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battery_readings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battery_readings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "battery_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battery_sessions: {
+        Row: {
+          battery_level_end: number | null
+          battery_level_start: number | null
+          browser: string | null
+          created_at: string
+          device_id: string
+          device_type: string | null
+          ended_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          metadata: Json | null
+          os: string | null
+          session_key: string
+          started_at: string
+          updated_at: string
+          was_charging: boolean | null
+        }
+        Insert: {
+          battery_level_end?: number | null
+          battery_level_start?: number | null
+          browser?: string | null
+          created_at?: string
+          device_id: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          os?: string | null
+          session_key: string
+          started_at?: string
+          updated_at?: string
+          was_charging?: boolean | null
+        }
+        Update: {
+          battery_level_end?: number | null
+          battery_level_start?: number | null
+          browser?: string | null
+          created_at?: string
+          device_id?: string
+          device_type?: string | null
+          ended_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          os?: string | null
+          session_key?: string
+          started_at?: string
+          updated_at?: string
+          was_charging?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battery_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      charging_sessions: {
+        Row: {
+          charging_speed: string | null
+          created_at: string
+          device_id: string
+          duration_seconds: number | null
+          efficiency_score: number | null
+          end_level: number | null
+          ended_at: string | null
+          id: string
+          metadata: Json | null
+          optimization_mode: string | null
+          port_quality: string | null
+          session_id: string | null
+          start_level: number
+          started_at: string
+        }
+        Insert: {
+          charging_speed?: string | null
+          created_at?: string
+          device_id: string
+          duration_seconds?: number | null
+          efficiency_score?: number | null
+          end_level?: number | null
+          ended_at?: string | null
+          id?: string
+          metadata?: Json | null
+          optimization_mode?: string | null
+          port_quality?: string | null
+          session_id?: string | null
+          start_level: number
+          started_at?: string
+        }
+        Update: {
+          charging_speed?: string | null
+          created_at?: string
+          device_id?: string
+          duration_seconds?: number | null
+          efficiency_score?: number | null
+          end_level?: number | null
+          ended_at?: string | null
+          id?: string
+          metadata?: Json | null
+          optimization_mode?: string | null
+          port_quality?: string | null
+          session_id?: string | null
+          start_level?: number
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "charging_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "charging_sessions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "battery_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           confidence_score: number | null
@@ -566,6 +816,54 @@ export type Database = {
         }
         Relationships: []
       }
+      dao_members: {
+        Row: {
+          created_at: string
+          devices: string[] | null
+          id: string
+          ip_addresses: Json | null
+          is_active: boolean | null
+          member_since: string
+          metadata: Json | null
+          reputation_score: number | null
+          total_contributions: number | null
+          updated_at: string
+          voting_power: number | null
+          wallet_address: string
+          worker_ids: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          devices?: string[] | null
+          id?: string
+          ip_addresses?: Json | null
+          is_active?: boolean | null
+          member_since?: string
+          metadata?: Json | null
+          reputation_score?: number | null
+          total_contributions?: number | null
+          updated_at?: string
+          voting_power?: number | null
+          wallet_address: string
+          worker_ids?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          devices?: string[] | null
+          id?: string
+          ip_addresses?: Json | null
+          is_active?: boolean | null
+          member_since?: string
+          metadata?: Json | null
+          reputation_score?: number | null
+          total_contributions?: number | null
+          updated_at?: string
+          voting_power?: number | null
+          wallet_address?: string
+          worker_ids?: string[] | null
+        }
+        Relationships: []
+      }
       decisions: {
         Row: {
           agent_id: string | null
@@ -597,6 +895,113 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      device_miner_associations: {
+        Row: {
+          associated_at: string
+          association_method: string | null
+          created_at: string
+          device_id: string
+          id: string
+          is_primary_device: boolean | null
+          metadata: Json | null
+          mining_while_charging: boolean | null
+          total_sessions_while_mining: number | null
+          updated_at: string
+          wallet_address: string | null
+          worker_id: string
+        }
+        Insert: {
+          associated_at?: string
+          association_method?: string | null
+          created_at?: string
+          device_id: string
+          id?: string
+          is_primary_device?: boolean | null
+          metadata?: Json | null
+          mining_while_charging?: boolean | null
+          total_sessions_while_mining?: number | null
+          updated_at?: string
+          wallet_address?: string | null
+          worker_id: string
+        }
+        Update: {
+          associated_at?: string
+          association_method?: string | null
+          created_at?: string
+          device_id?: string
+          id?: string
+          is_primary_device?: boolean | null
+          metadata?: Json | null
+          mining_while_charging?: boolean | null
+          total_sessions_while_mining?: number | null
+          updated_at?: string
+          wallet_address?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_miner_associations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      devices: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_fingerprint: string
+          device_type: string | null
+          first_seen_at: string
+          id: string
+          ip_addresses: Json | null
+          is_active: boolean | null
+          last_seen_at: string
+          metadata: Json | null
+          os: string | null
+          session_keys: string[] | null
+          updated_at: string
+          wallet_address: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_fingerprint: string
+          device_type?: string | null
+          first_seen_at?: string
+          id?: string
+          ip_addresses?: Json | null
+          is_active?: boolean | null
+          last_seen_at?: string
+          metadata?: Json | null
+          os?: string | null
+          session_keys?: string[] | null
+          updated_at?: string
+          wallet_address?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_fingerprint?: string
+          device_type?: string | null
+          first_seen_at?: string
+          id?: string
+          ip_addresses?: Json | null
+          is_active?: boolean | null
+          last_seen_at?: string
+          metadata?: Json | null
+          os?: string | null
+          session_keys?: string[] | null
+          updated_at?: string
+          wallet_address?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
       }
       eliza_activity_log: {
         Row: {
@@ -717,9 +1122,11 @@ export type Database = {
           amount: number
           claimed_at: string
           created_at: string
+          device_id: string | null
           error_message: string | null
           id: string
           ip_address: unknown | null
+          session_key: string | null
           status: string
           transaction_hash: string | null
           updated_at: string
@@ -729,9 +1136,11 @@ export type Database = {
           amount: number
           claimed_at?: string
           created_at?: string
+          device_id?: string | null
           error_message?: string | null
           id?: string
           ip_address?: unknown | null
+          session_key?: string | null
           status?: string
           transaction_hash?: string | null
           updated_at?: string
@@ -741,15 +1150,25 @@ export type Database = {
           amount?: number
           claimed_at?: string
           created_at?: string
+          device_id?: string | null
           error_message?: string | null
           id?: string
           ip_address?: unknown | null
+          session_key?: string | null
           status?: string
           transaction_hash?: string | null
           updated_at?: string
           wallet_address?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "faucet_claims_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       faucet_config: {
         Row: {
@@ -807,6 +1226,65 @@ export type Database = {
           session_key?: string
         }
         Relationships: []
+      }
+      ip_address_log: {
+        Row: {
+          activity_type: string | null
+          created_at: string
+          device_id: string | null
+          first_seen: string
+          geolocation: Json | null
+          id: string
+          ip_address: unknown
+          last_seen: string
+          metadata: Json | null
+          session_key: string | null
+          total_requests: number | null
+          user_agent: string | null
+          wallet_address: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          activity_type?: string | null
+          created_at?: string
+          device_id?: string | null
+          first_seen?: string
+          geolocation?: Json | null
+          id?: string
+          ip_address: unknown
+          last_seen?: string
+          metadata?: Json | null
+          session_key?: string | null
+          total_requests?: number | null
+          user_agent?: string | null
+          wallet_address?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          activity_type?: string | null
+          created_at?: string
+          device_id?: string | null
+          first_seen?: string
+          geolocation?: Json | null
+          id?: string
+          ip_address?: unknown
+          last_seen?: string
+          metadata?: Json | null
+          session_key?: string | null
+          total_requests?: number | null
+          user_agent?: string | null
+          wallet_address?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_address_log_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       knowledge_entities: {
         Row: {
@@ -1485,7 +1963,9 @@ export type Database = {
         Row: {
           alias: string | null
           created_at: string
+          device_id: string | null
           id: string
+          ip_addresses: Json | null
           is_active: boolean
           last_active: string
           metadata: Json | null
@@ -1501,7 +1981,9 @@ export type Database = {
         Insert: {
           alias?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
+          ip_addresses?: Json | null
           is_active?: boolean
           last_active?: string
           metadata?: Json | null
@@ -1517,7 +1999,9 @@ export type Database = {
         Update: {
           alias?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
+          ip_addresses?: Json | null
           is_active?: boolean
           last_active?: string
           metadata?: Json | null
@@ -1530,7 +2014,15 @@ export type Database = {
           wallet_address?: string
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_worker_mappings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhook_configs: {
         Row: {
@@ -1603,10 +2095,14 @@ export type Database = {
       }
       worker_registrations: {
         Row: {
+          battery_optimized: boolean | null
+          charging_status: string | null
           created_at: string
+          device_id: string | null
           id: string
           ip_address: unknown
           is_active: boolean
+          last_battery_level: number | null
           last_seen: string
           metadata: Json | null
           registration_date: string
@@ -1615,10 +2111,14 @@ export type Database = {
           worker_id: string
         }
         Insert: {
+          battery_optimized?: boolean | null
+          charging_status?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
           ip_address: unknown
           is_active?: boolean
+          last_battery_level?: number | null
           last_seen?: string
           metadata?: Json | null
           registration_date?: string
@@ -1627,10 +2127,14 @@ export type Database = {
           worker_id: string
         }
         Update: {
+          battery_optimized?: boolean | null
+          charging_status?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
           ip_address?: unknown
           is_active?: boolean
+          last_battery_level?: number | null
           last_seen?: string
           metadata?: Json | null
           registration_date?: string
@@ -1638,7 +2142,15 @@ export type Database = {
           updated_at?: string
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "worker_registrations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow_executions: {
         Row: {
@@ -1791,6 +2303,60 @@ export type Database = {
           recommended_actions?: string[] | null
         }
         Relationships: []
+      }
+      xmrt_assistant_interactions: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          id: string
+          interaction_type: string | null
+          metadata: Json | null
+          prompt: string | null
+          recommendations_given: Json | null
+          response: string | null
+          session_id: string | null
+          user_action_taken: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          interaction_type?: string | null
+          metadata?: Json | null
+          prompt?: string | null
+          recommendations_given?: Json | null
+          response?: string | null
+          session_id?: string | null
+          user_action_taken?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          interaction_type?: string | null
+          metadata?: Json | null
+          prompt?: string | null
+          recommendations_given?: Json | null
+          response?: string | null
+          session_id?: string | null
+          user_action_taken?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xmrt_assistant_interactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xmrt_assistant_interactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "battery_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
