@@ -1,5 +1,4 @@
-
-import { BatteryMonitor } from "@/components/BatteryMonitor";
+import { BatteryMonitorEnhanced } from "@/components/BatteryMonitorEnhanced";
 import { ContactFooter } from "@/components/ContactFooter";
 import { Web3Donation } from "@/components/Web3Donation";
 import { ProductXMRT } from "@/components/ProductXMRT";
@@ -16,7 +15,7 @@ const Index = () => {
             Professional Grade Charging Solutions
           </p>
         </div>
-        <BatteryMonitor />
+        <BatteryMonitorEnhanced />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
           <ProductXMRT />
           <Web3Donation />

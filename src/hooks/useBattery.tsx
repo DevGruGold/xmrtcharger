@@ -1,13 +1,35 @@
-import { useState, useEffect } from 'react';
-import { BatteryStatus } from '@/types/battery';
+import { useState, useEffect, useCallback } from 'react';
+import { BatteryStatus, ChargingSession, ChargingSpeed } from '@/types/battery';
 import { useToast } from '@/components/ui/use-toast';
 import { determineChargingSpeed, checkRapidDischarge } from '@/utils/batteryUtils';
+import { saveChargingSession } from '@/utils/batteryHistory';
+import { calculateChargingEfficiency } from '@/utils/batteryHealth';
 
 export const useBattery = () => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastLevel, setLastLevel] = useState<number | null>(null);
+  const [chargingStartTime, setChargingStartTime] = useState<number | null>(null);
+  const [chargingStartLevel, setChargingStartLevel] = useState<number | null>(null);
   const { toast } = useToast();
+
+  const saveSession = useCallback((currentLevel: number, speed: ChargingSpeed) => {
+    if (chargingStartTime && chargingStartLevel !== null) {
+      const duration = (Date.now() - chargingStartTime) / 1000; // seconds
+      const efficiency = calculateChargingEfficiency(chargingStartLevel, currentLevel, duration, speed);
+      
+      const session: ChargingSession = {
+        timestamp: chargingStartTime,
+        startLevel: chargingStartLevel,
+        endLevel: currentLevel,
+        duration,
+        speed,
+        efficiency,
+      };
+      
+      saveChargingSession(session);
+    }
+  }, [chargingStartTime, chargingStartLevel]);
 
   useEffect(() => {
     const getBattery = async () => {
@@ -38,12 +60,23 @@ export const useBattery = () => {
             isRapidDischarge: !battery.charging && checkRapidDischarge(currentLevel, lastLevel)
           });
 
-          if (battery.charging) {
+          // Track charging session start
+          if (battery.charging && !chargingStartTime) {
+            setChargingStartTime(Date.now());
+            setChargingStartLevel(currentLevel);
+            
             toast({
               title: `${chargingSpeed?.charAt(0).toUpperCase()}${chargingSpeed?.slice(1)} charging detected!`,
               description: "Consider enabling airplane mode or battery saver for even faster charging.",
               duration: 5000,
             });
+          }
+          
+          // Save session when charging stops
+          if (!battery.charging && chargingStartTime && chargingSpeed) {
+            saveSession(currentLevel, chargingSpeed);
+            setChargingStartTime(null);
+            setChargingStartLevel(null);
           }
         };
 
@@ -73,7 +106,7 @@ export const useBattery = () => {
     };
 
     getBattery();
-  }, [toast, lastLevel]);
+  }, [toast, lastLevel, chargingStartTime, saveSession]);
 
   return { batteryStatus, error };
 };
