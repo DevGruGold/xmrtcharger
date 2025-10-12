@@ -11,22 +11,26 @@ export const detectBatteryIssues = (
   if (health.portQuality === 'needs-cleaning') {
     issues.push({
       id: 'port-dirty',
-      type: 'critical',
+      type: 'warning',
       category: 'port',
-      title: 'Charging Port Needs Cleaning',
-      description: 'Port contamination detected affecting connection quality and charging speed.',
-      impact: 'Reduced charging speed by 30-50%, inconsistent connection, potential damage over time',
-      solution: 'Clean port with compressed air and soft brush. Avoid liquids and metal objects.'
+      title: 'Possible Connection Issue Detected',
+      description: 'Charging patterns suggest a potential port, cable, or charger issue.',
+      impact: 'May affect charging speed and connection stability',
+      solution: 'Try: 1) Different charging cable 2) Original charger 3) Clean port gently with compressed air 4) Remove phone case',
+      confidence: sessions.length < 5 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   } else if (health.portQuality === 'good') {
     issues.push({
       id: 'port-maintenance',
       type: 'info',
       category: 'port',
-      title: 'Regular Port Maintenance Recommended',
-      description: 'Your port is functioning well but could benefit from preventive maintenance.',
-      impact: 'Minor efficiency improvements possible',
-      solution: 'Periodic cleaning every 2-3 months to prevent buildup'
+      title: 'Connection Quality Good',
+      description: 'Your port is functioning well. Regular maintenance can help maintain performance.',
+      impact: 'None detected - preventive measure',
+      solution: 'Optional: Periodic gentle cleaning every 2-3 months to prevent buildup',
+      confidence: sessions.length < 10 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   }
 
@@ -34,22 +38,26 @@ export const detectBatteryIssues = (
   if (health.temperatureImpact === 'hot') {
     issues.push({
       id: 'temp-hot',
-      type: 'critical',
+      type: 'warning',
       category: 'temperature',
-      title: 'High Temperature Detected',
-      description: 'Device temperature is significantly affecting charging performance.',
-      impact: 'Reduced charging speed, accelerated battery degradation, potential safety concerns',
-      solution: 'Remove phone case, place in cooler area, avoid charging while using intensive apps'
+      title: 'Low Charging Efficiency Detected',
+      description: 'Charging patterns show lower than expected efficiency. Possible causes: temperature, cable quality, or port condition.',
+      impact: 'Slower charging and potential energy waste',
+      solution: 'Try: Cool environment, airplane mode, original charger, close background apps',
+      confidence: sessions.length < 10 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   } else if (health.temperatureImpact === 'warm') {
     issues.push({
       id: 'temp-warm',
-      type: 'warning',
+      type: 'info',
       category: 'temperature',
-      title: 'Elevated Temperature',
-      description: 'Temperature is slightly higher than optimal for charging.',
-      impact: 'Moderate reduction in charging efficiency (10-15%)',
-      solution: 'Improve ventilation, avoid direct sunlight, consider removing case during charging'
+      title: 'Moderate Charging Efficiency',
+      description: 'Charging efficiency is acceptable but could be improved. Multiple factors may contribute.',
+      impact: 'Slightly longer charging times',
+      solution: 'Consider: Removing phone case, closing background apps, using airplane mode',
+      confidence: sessions.length < 10 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   }
 
@@ -59,10 +67,12 @@ export const detectBatteryIssues = (
       id: 'speed-slow',
       type: 'warning',
       category: 'speed',
-      title: 'Consistently Slow Charging',
-      description: 'Your device is charging significantly slower than its capability.',
-      impact: 'Extended charging times, reduced convenience',
-      solution: 'Use original charger, enable airplane mode, close background apps, check cable quality'
+      title: 'Consistently Slow Charging Pattern',
+      description: 'Your charging sessions show slower than typical speeds. This may be due to several factors.',
+      impact: 'Extended charging times',
+      solution: 'Check: Original charger, enable airplane mode, close background apps, cable quality',
+      confidence: sessions.length < 5 ? 'low' : sessions.length < 15 ? 'medium' : 'high',
+      dataPoints: sessions.length
     });
   }
 
@@ -70,22 +80,26 @@ export const detectBatteryIssues = (
   if (health.chargingEfficiency < 60) {
     issues.push({
       id: 'efficiency-low',
-      type: 'critical',
+      type: 'warning',
       category: 'efficiency',
-      title: 'Low Charging Efficiency',
-      description: 'Power conversion efficiency is significantly below expected levels.',
-      impact: 'Wasted energy, increased heat generation, longer charging times',
-      solution: 'Replace charging cable, use certified charger, clean charging port, check for software issues'
+      title: 'Lower Charging Efficiency Pattern',
+      description: 'Charging patterns indicate below-expected efficiency. May be related to multiple factors.',
+      impact: 'Longer charging times, possible energy waste',
+      solution: 'Try: Replace charging cable, use certified charger, clean charging port, check for software issues',
+      confidence: sessions.length < 10 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   } else if (health.chargingEfficiency < 75) {
     issues.push({
       id: 'efficiency-moderate',
-      type: 'warning',
+      type: 'info',
       category: 'efficiency',
-      title: 'Moderate Charging Efficiency',
-      description: 'Charging efficiency could be improved for optimal performance.',
-      impact: 'Some power waste, slightly longer charging times',
-      solution: 'Verify charger specifications, ensure good port connection, minimize device usage while charging'
+      title: 'Room for Efficiency Improvement',
+      description: 'Charging efficiency could be optimized for better performance.',
+      impact: 'Slightly longer charging times',
+      solution: 'Tips: Verify charger specifications, ensure good port connection, minimize device usage while charging',
+      confidence: sessions.length < 10 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   }
 
@@ -98,7 +112,9 @@ export const detectBatteryIssues = (
       title: 'Significant Battery Degradation',
       description: 'Battery health has declined substantially, indicating advanced wear.',
       impact: 'Reduced capacity, unpredictable performance, frequent charging needed',
-      solution: 'Consider battery replacement, use Battery Health mode, avoid extreme charge levels (keep 20-80%)'
+      solution: 'Consider battery replacement, use Battery Health mode, avoid extreme charge levels (keep 20-80%)',
+      confidence: sessions.length < 20 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   } else if (health.degradationLevel === 'fair') {
     issues.push({
@@ -108,7 +124,9 @@ export const detectBatteryIssues = (
       title: 'Moderate Battery Degradation',
       description: 'Battery is showing signs of wear that may worsen over time.',
       impact: 'Gradually declining capacity, may need more frequent charging',
-      solution: 'Adopt better charging habits, avoid overnight charging, use optimization modes'
+      solution: 'Adopt better charging habits, avoid overnight charging, use optimization modes',
+      confidence: sessions.length < 15 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   }
 
@@ -127,7 +145,9 @@ export const detectBatteryIssues = (
         title: 'Declining Performance Trend',
         description: 'Charging efficiency has been consistently decreasing over recent sessions.',
         impact: 'Progressive performance deterioration, potential hardware issues',
-        solution: 'Review charging habits, inspect hardware for damage, consider professional inspection'
+        solution: 'Review charging habits, inspect hardware for damage, consider professional inspection',
+        confidence: 'medium',
+        dataPoints: sessions.length
       });
     }
   }
@@ -141,7 +161,9 @@ export const detectBatteryIssues = (
       title: 'Critical Battery Health',
       description: 'Overall battery health is in critical condition requiring immediate attention.',
       impact: 'Severely compromised performance, unreliable operation',
-      solution: 'Immediate action required: clean port, optimize charging environment, consider battery service'
+      solution: 'Immediate action required: clean port, optimize charging environment, consider battery service',
+      confidence: sessions.length < 20 ? 'low' : 'medium',
+      dataPoints: sessions.length
     });
   }
 

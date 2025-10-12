@@ -16,11 +16,13 @@ import {
 export interface BatteryIssue {
   id: string;
   type: 'critical' | 'warning' | 'info';
-  category: 'port' | 'temperature' | 'speed' | 'degradation' | 'efficiency';
+  category: 'port' | 'temperature' | 'speed' | 'efficiency' | 'degradation' | 'general';
   title: string;
   description: string;
   impact: string;
   solution: string;
+  confidence: 'low' | 'medium' | 'high';
+  dataPoints: number;
 }
 
 interface IssueDetectionPanelProps {

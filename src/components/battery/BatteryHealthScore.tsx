@@ -1,13 +1,14 @@
 import { BatteryHealthMetrics } from '@/types/battery';
-import { Battery, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Battery, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BatteryHealthScoreProps {
   health: BatteryHealthMetrics;
 }
 
-export const BatteryHealthScore = ({ health }: BatteryHealthScoreProps) => {
+export const BatteryHealthScore = ({ health, sessionCount = 0 }: BatteryHealthScoreProps & { sessionCount?: number }) => {
   const getScoreColor = (score: number) => {
     if (score >= 85) return 'text-green-500';
     if (score >= 70) return 'text-blue-500';
@@ -35,7 +36,20 @@ export const BatteryHealthScore = ({ health }: BatteryHealthScoreProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Battery className="w-5 h-5" />
-          <h3 className="font-semibold">Battery Health</h3>
+          <h3 className="font-semibold text-sm sm:text-base">Charging Behavior Score</h3>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-xs">
+                  Score based on {sessionCount} charging session{sessionCount !== 1 ? 's' : ''}, 
+                  analyzing patterns rather than battery chemistry.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <Badge variant={getDegradationBadgeVariant(health.degradationLevel)}>
           {health.degradationLevel.toUpperCase()}

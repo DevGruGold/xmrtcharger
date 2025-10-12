@@ -1,1 +1,4 @@
 project_id = "vawouugtzwmejxqkeqqj"
+
+[functions.record-battery-data]
+verify_jwt = false

@@ -1,15 +1,17 @@
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import { BatteryHealthMetrics } from '@/types/battery';
 
 interface HealthReportCardProps {
   health: BatteryHealthMetrics;
   showTrend?: boolean;
+  sessionCount?: number;
 }
 
-export const HealthReportCard = ({ health, showTrend = false }: HealthReportCardProps) => {
+export const HealthReportCard = ({ health, showTrend = false, sessionCount = 0 }: HealthReportCardProps) => {
   const getGrade = (score: number): string => {
     if (score >= 95) return 'A+';
     if (score >= 90) return 'A';
@@ -21,6 +23,8 @@ export const HealthReportCard = ({ health, showTrend = false }: HealthReportCard
     if (score >= 60) return 'C';
     return 'D';
   };
+
+  const confidence = sessionCount < 5 ? 'Limited' : sessionCount < 20 ? 'Moderate' : 'Sufficient';
 
   const getGradeColor = (score: number): string => {
     if (score >= 85) return 'text-green-500';
@@ -45,17 +49,30 @@ export const HealthReportCard = ({ health, showTrend = false }: HealthReportCard
 
   return (
     <Card className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Battery Health Report</h3>
-          <p className="text-sm text-muted-foreground">Comprehensive analysis of battery performance</p>
-        </div>
-        {showTrend && (
-          <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="w-4 h-4 text-green-500" />
-            <span className="text-muted-foreground">Improving</span>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Charging Pattern Analysis</h3>
+            <p className="text-sm text-muted-foreground">
+              Based on {sessionCount} session{sessionCount !== 1 ? 's' : ''}
+            </p>
           </div>
-        )}
+          {showTrend && (
+            <div className="flex items-center gap-2 text-sm">
+              <TrendingUp className="w-4 h-4 text-green-500" />
+              <span className="text-muted-foreground">Improving</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Data Quality Badge */}
+        <Alert className="py-2">
+          <Info className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            <strong>{confidence} Data:</strong> Based on charging behavior patterns, not direct battery measurements. 
+            {sessionCount < 20 && ` Collect ${20 - sessionCount} more session${20 - sessionCount !== 1 ? 's' : ''} for higher confidence.`}
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Overall Score */}

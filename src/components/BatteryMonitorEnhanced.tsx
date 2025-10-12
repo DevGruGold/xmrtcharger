@@ -11,7 +11,7 @@ import { BatteryVisualization } from './battery/BatteryVisualization';
 import { ChargingGraph } from './battery/ChargingGraph';
 import { IssueDetectionPanel } from './battery/IssueDetectionPanel';
 import { HealthReportCard } from './battery/HealthReportCard';
-import { TemperatureGauge } from './battery/TemperatureGauge';
+import { ChargingEfficiency } from './battery/ChargingEfficiency';
 import { PortQualityIndicator } from './battery/PortQualityIndicator';
 import { DeviceDetector } from './battery/DeviceDetector';
 import { BrowserCompatibilityChecker } from './battery/BrowserCompatibilityChecker';
@@ -147,7 +147,11 @@ export const BatteryMonitorEnhanced = () => {
           <TabsContent value="monitor" className="space-y-4 sm:space-y-6">
             <BatteryStatusDisplay batteryStatus={batteryStatus} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              <TemperatureGauge temperatureImpact={health.temperatureImpact} />
+              <ChargingEfficiency 
+                temperatureImpact={health.temperatureImpact}
+                chargingEfficiency={health.chargingEfficiency}
+                sessionCount={getChargingHistory().length}
+              />
               <PortQualityIndicator portQuality={health.portQuality} />
             </div>
           </TabsContent>
@@ -185,7 +189,11 @@ export const BatteryMonitorEnhanced = () => {
           </TabsContent>
 
           <TabsContent value="health" className="space-y-4 sm:space-y-6">
-            <HealthReportCard health={health} showTrend />
+            <HealthReportCard 
+              health={health} 
+              showTrend 
+              sessionCount={getChargingHistory().length}
+            />
             <IssueDetectionPanel issues={issues} />
             <BatteryDiagnostics health={health} />
           </TabsContent>
