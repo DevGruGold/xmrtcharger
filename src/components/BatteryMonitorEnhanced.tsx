@@ -9,7 +9,7 @@ import { OptimizationCoach } from './battery/OptimizationCoach';
 import { BatteryDiagnostics } from './battery/BatteryDiagnostics';
 import { BatteryVisualization } from './battery/BatteryVisualization';
 import { ChargingGraph } from './battery/ChargingGraph';
-import { DiagnosticScanner } from './battery/DiagnosticScanner';
+
 import { IssueDetectionPanel } from './battery/IssueDetectionPanel';
 import { HealthReportCard } from './battery/HealthReportCard';
 import { TemperatureGauge } from './battery/TemperatureGauge';
@@ -30,7 +30,6 @@ export const BatteryMonitorEnhanced = () => {
   const [selectedMode, setSelectedMode] = useState<ChargingMode>('turbo');
   const [tasks, setTasks] = useState<OptimizationTask[]>([]);
   const [health, setHealth] = useState<BatteryHealthMetrics | null>(null);
-  const [isScanning, setIsScanning] = useState(true);
   const [issues, setIssues] = useState<any[]>([]);
 
   useEffect(() => {
@@ -79,14 +78,6 @@ export const BatteryMonitorEnhanced = () => {
       <Card className="w-full max-w-4xl mx-auto p-6">
         <div className="text-center">Loading battery information...</div>
       </Card>
-    );
-  }
-
-  if (isScanning) {
-    return (
-      <div className="w-full max-w-4xl mx-auto">
-        <DiagnosticScanner onComplete={() => setIsScanning(false)} />
-      </div>
     );
   }
 
