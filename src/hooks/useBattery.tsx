@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BatteryStatus, ChargingSession, ChargingSpeed, DeviceInfo } from '@/types/battery';
+import { DrainAnalysis } from '@/types/batteryDrain';
 import { useToast } from '@/components/ui/use-toast';
 import { determineChargingSpeed, checkRapidDischarge } from '@/utils/batteryUtils';
 import { saveChargingSession } from '@/utils/batteryHistory';
 import { calculateChargingEfficiency } from '@/utils/batteryHealth';
 import { getDeviceInfo } from '@/utils/deviceDetection';
+import { getBatteryDrainAnalyzer } from '@/utils/batteryDrainAnalyzer';
+import { recordBatteryReading } from '@/utils/supabaseBatteryHistory';
 
 export const useBattery = () => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
@@ -13,6 +16,8 @@ export const useBattery = () => {
   const [lastLevel, setLastLevel] = useState<number | null>(null);
   const [chargingStartTime, setChargingStartTime] = useState<number | null>(null);
   const [chargingStartLevel, setChargingStartLevel] = useState<number | null>(null);
+  const [drainAnalysis, setDrainAnalysis] = useState<DrainAnalysis | null>(null);
+  const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const { toast } = useToast();
 
   // Detect device info on mount
@@ -45,16 +50,49 @@ export const useBattery = () => {
         // @ts-ignore - Navigator.getBattery() is experimental
         const battery = await navigator.getBattery();
         
-        const updateBatteryStatus = () => {
+        const updateBatteryStatus = async () => {
           const chargingSpeed = battery.charging ? determineChargingSpeed(battery.chargingTime) : undefined;
           const currentLevel = battery.level * 100;
           
+          // Analyze rapid discharge with specific cause detection
           if (!battery.charging && checkRapidDischarge(currentLevel, lastLevel)) {
-            toast({
-              title: "Rapid Battery Discharge Detected!",
-              description: "Consider closing high-power apps like games, video streaming, or GPS navigation to preserve battery life.",
-              duration: 8000,
-            });
+            const dischargeRate = lastLevel ? lastLevel - currentLevel : 0;
+            
+            try {
+              const analyzer = getBatteryDrainAnalyzer();
+              const analysis = await analyzer.analyzeDrain(dischargeRate);
+              setDrainAnalysis(analysis);
+
+              // Record to Supabase with drain analysis
+              const deviceId = `device_${navigator.userAgent.slice(0, 50).replace(/\W/g, '_')}`;
+              await recordBatteryReading(
+                deviceId,
+                sessionId,
+                currentLevel,
+                battery.charging,
+                battery.chargingTime === Infinity ? null : battery.chargingTime,
+                battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+                chargingSpeed,
+                undefined,
+                { drain_analysis: analysis }
+              );
+
+              toast({
+                title: `Rapid Discharge: ${analysis.primaryCause.replace(/_/g, ' ').toUpperCase()}`,
+                description: `${analysis.confidence.toUpperCase()} confidence detection. Check recommendations below.`,
+                duration: 8000,
+              });
+            } catch (error) {
+              console.error('Error analyzing battery drain:', error);
+              toast({
+                title: "Rapid Battery Discharge Detected!",
+                description: "Unable to determine specific cause. Consider closing high-power apps.",
+                duration: 8000,
+              });
+            }
+          } else if (battery.charging || !checkRapidDischarge(currentLevel, lastLevel)) {
+            // Clear drain analysis when not rapidly discharging
+            setDrainAnalysis(null);
           }
 
           setLastLevel(currentLevel);
@@ -116,5 +154,5 @@ export const useBattery = () => {
     getBattery();
   }, [toast, lastLevel, chargingStartTime, saveSession]);
 
-  return { batteryStatus, deviceInfo, error };
+  return { batteryStatus, deviceInfo, error, drainAnalysis };
 };
