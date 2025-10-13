@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBattery } from '@/hooks/useBattery';
+import { useDeviceConnection } from '@/hooks/useDeviceConnection';
 import { BatteryStatusDisplay } from './battery/BatteryStatus';
 import { BatteryHealthScore } from './battery/BatteryHealthScore';
 import { ChargingModeSelector } from './battery/ChargingModeSelector';
@@ -29,7 +30,12 @@ import { detectBatteryIssues } from '@/utils/issueDetection';
 import { getDeviceSpecificTips, getChargingOptimizationTips } from '@/utils/deviceOptimization';
 
 export const BatteryMonitorEnhanced = () => {
-  const { batteryStatus, deviceInfo, error } = useBattery();
+  const connection = useDeviceConnection();
+  const { batteryStatus, deviceInfo, error } = useBattery({
+    deviceId: connection.deviceId,
+    sessionId: connection.sessionId || undefined,
+    logActivity: connection.logActivity,
+  });
   const [selectedMode, setSelectedMode] = useState<ChargingMode>('turbo');
   const [tasks, setTasks] = useState<OptimizationTask[]>([]);
   const [health, setHealth] = useState<BatteryHealthMetrics | null>(null);

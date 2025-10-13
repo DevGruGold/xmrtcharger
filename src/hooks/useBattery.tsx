@@ -9,7 +9,13 @@ import { getDeviceInfo } from '@/utils/deviceDetection';
 import { getBatteryDrainAnalyzer } from '@/utils/batteryDrainAnalyzer';
 import { recordBatteryReading } from '@/utils/supabaseBatteryHistory';
 
-export const useBattery = () => {
+interface UseBatteryOptions {
+  deviceId?: string;
+  sessionId?: string;
+  logActivity?: (type: string, category: string, description: string, details?: any, severity?: string) => void;
+}
+
+export const useBattery = (options?: UseBatteryOptions) => {
   const [batteryStatus, setBatteryStatus] = useState<BatteryStatus | null>(null);
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -17,8 +23,10 @@ export const useBattery = () => {
   const [chargingStartTime, setChargingStartTime] = useState<number | null>(null);
   const [chargingStartLevel, setChargingStartLevel] = useState<number | null>(null);
   const [drainAnalysis, setDrainAnalysis] = useState<DrainAnalysis | null>(null);
-  const [sessionId] = useState<string>(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const { toast } = useToast();
+  
+  const deviceId = options?.deviceId || `device_${navigator.userAgent.slice(0, 50).replace(/\W/g, '_')}`;
+  const sessionId = options?.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
   // Detect device info on mount
   useEffect(() => {
@@ -64,7 +72,6 @@ export const useBattery = () => {
               setDrainAnalysis(analysis);
 
               // Record to Supabase with drain analysis
-              const deviceId = `device_${navigator.userAgent.slice(0, 50).replace(/\W/g, '_')}`;
               await recordBatteryReading(
                 deviceId,
                 sessionId,
@@ -76,6 +83,17 @@ export const useBattery = () => {
                 undefined,
                 { drain_analysis: analysis }
               );
+
+              // Log rapid discharge activity
+              if (options?.logActivity) {
+                options.logActivity(
+                  'rapid_discharge_detected',
+                  'battery_health',
+                  `Rapid discharge detected: ${analysis.primaryCause}`,
+                  { analysis, dischargeRate },
+                  'warning'
+                );
+              }
 
               toast({
                 title: `Rapid Discharge: ${analysis.primaryCause.replace(/_/g, ' ').toUpperCase()}`,
@@ -111,6 +129,16 @@ export const useBattery = () => {
             setChargingStartTime(Date.now());
             setChargingStartLevel(currentLevel);
             
+            // Log charging started
+            if (options?.logActivity) {
+              options.logActivity(
+                'charging_started',
+                'charging',
+                `Charging started at ${currentLevel.toFixed(1)}% - ${chargingSpeed} speed`,
+                { level: currentLevel, speed: chargingSpeed }
+              );
+            }
+            
             toast({
               title: `${chargingSpeed?.charAt(0).toUpperCase()}${chargingSpeed?.slice(1)} charging detected!`,
               description: "Consider enabling airplane mode or battery saver for even faster charging.",
@@ -120,7 +148,24 @@ export const useBattery = () => {
           
           // Save session when charging stops
           if (!battery.charging && chargingStartTime && chargingSpeed) {
+            const duration = (Date.now() - chargingStartTime) / 1000;
             saveSession(currentLevel, chargingSpeed);
+            
+            // Log charging completed
+            if (options?.logActivity) {
+              options.logActivity(
+                'charging_completed',
+                'charging',
+                `Charging completed: ${chargingStartLevel?.toFixed(1)}% → ${currentLevel.toFixed(1)}% (${Math.floor(duration / 60)}min)`,
+                { 
+                  startLevel: chargingStartLevel, 
+                  endLevel: currentLevel, 
+                  duration,
+                  speed: chargingSpeed 
+                }
+              );
+            }
+            
             setChargingStartTime(null);
             setChargingStartLevel(null);
           }
@@ -135,6 +180,34 @@ export const useBattery = () => {
         battery.addEventListener('chargingtimechange', updateBatteryStatus);
         battery.addEventListener('dischargingtimechange', updateBatteryStatus);
 
+        // Set up periodic battery reading recording (every 2 minutes)
+        const recordingInterval = setInterval(async () => {
+          const currentLevel = battery.level * 100;
+          const chargingSpeed = battery.charging ? determineChargingSpeed(battery.chargingTime) : undefined;
+          
+          await recordBatteryReading(
+            deviceId,
+            sessionId,
+            currentLevel,
+            battery.charging,
+            battery.chargingTime === Infinity ? null : battery.chargingTime,
+            battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+            chargingSpeed,
+            undefined,
+            { periodic_reading: true }
+          );
+          
+          // Log periodic reading activity
+          if (options?.logActivity) {
+            options.logActivity(
+              'battery_reading_recorded',
+              'battery_health',
+              `Battery: ${currentLevel.toFixed(1)}% | ${battery.charging ? 'Charging' : 'Discharging'}`,
+              { level: currentLevel, charging: battery.charging, speed: chargingSpeed }
+            );
+          }
+        }, 120000); // Every 2 minutes
+
         // Set up periodic discharge rate check (every minute)
         const intervalId = setInterval(updateBatteryStatus, 60000);
 
@@ -144,6 +217,7 @@ export const useBattery = () => {
           battery.removeEventListener('chargingtimechange', updateBatteryStatus);
           battery.removeEventListener('dischargingtimechange', updateBatteryStatus);
           clearInterval(intervalId);
+          clearInterval(recordingInterval);
         };
       } catch (err) {
         setError('Battery API not supported in this browser');
