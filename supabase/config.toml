@@ -2,3 +2,15 @@ project_id = "vawouugtzwmejxqkeqqj"
 
 [functions.record-battery-data]
 verify_jwt = false
+
+[functions.monitor-device-connections]
+verify_jwt = false
+
+[functions.issue-engagement-command]
+verify_jwt = false
+
+[functions.validate-pop-event]
+verify_jwt = false
+
+[functions.aggregate-device-metrics]
+verify_jwt = false
