@@ -2,8 +2,13 @@ import { BatteryMonitorEnhanced } from "@/components/BatteryMonitorEnhanced";
 import { ContactFooter } from "@/components/ContactFooter";
 import { Web3Donation } from "@/components/Web3Donation";
 import { ProductXMRT } from "@/components/ProductXMRT";
+import { AppSelector } from "@/components/AppSelector";
+import { MaxChargingMode } from "@/components/MaxChargingMode";
+import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 
 const Index = () => {
+  const connection = useDeviceConnection();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl mx-auto pt-4 sm:pt-6 md:pt-8 pb-16 sm:pb-20 md:pb-24 px-4 sm:px-6">
@@ -15,7 +20,29 @@ const Index = () => {
             Professional Grade Charging Solutions
           </p>
         </div>
+        
+        <div className="mb-6">
+          <MaxChargingMode 
+            onModeChange={(enabled) => {
+              if (connection.logActivity) {
+                connection.logActivity(
+                  'max_charging_mode',
+                  'user_action',
+                  `Maximum Charging Mode ${enabled ? 'activated' : 'deactivated'}`,
+                  { mode_enabled: enabled },
+                  'info'
+                );
+              }
+            }}
+          />
+        </div>
+
         <BatteryMonitorEnhanced />
+        
+        <div className="mt-6">
+          <AppSelector />
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mt-6 sm:mt-8">
           <ProductXMRT />
           <Web3Donation />
