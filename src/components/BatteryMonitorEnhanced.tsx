@@ -17,6 +17,8 @@ import { PortQualityIndicator } from './battery/PortQualityIndicator';
 import { DeviceDetector } from './battery/DeviceDetector';
 import { BrowserCompatibilityChecker } from './battery/BrowserCompatibilityChecker';
 import { DeviceSpecificTips } from './battery/DeviceSpecificTips';
+import { AIOptimizationPanel } from './battery/AIOptimizationPanel';
+import { RealTimeDataFlow } from './battery/RealTimeDataFlow';
 import { ChargingMode, OptimizationTask, BatteryHealthMetrics } from '@/types/battery';
 import { getChargingHistory } from '@/utils/batteryHistory';
 import {
@@ -152,6 +154,14 @@ export const BatteryMonitorEnhanced = () => {
 
           <TabsContent value="monitor" className="space-y-4 sm:space-y-6">
             <BatteryStatusDisplay batteryStatus={batteryStatus} />
+            
+            {connection.deviceId && connection.sessionId && (
+              <RealTimeDataFlow 
+                deviceId={connection.deviceId} 
+                sessionId={connection.sessionId} 
+              />
+            )}
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <ChargingEfficiency 
                 temperatureImpact={health.temperatureImpact}
@@ -160,6 +170,15 @@ export const BatteryMonitorEnhanced = () => {
               />
               <PortQualityIndicator portQuality={health.portQuality} />
             </div>
+
+            {connection.deviceId && (
+              <AIOptimizationPanel
+                deviceId={connection.deviceId}
+                sessionId={connection.sessionId}
+                batteryStatus={batteryStatus}
+                autoRefresh={true}
+              />
+            )}
           </TabsContent>
 
         <TabsContent value="visualize" className="space-y-4 sm:space-y-6">
@@ -195,6 +214,15 @@ export const BatteryMonitorEnhanced = () => {
           </TabsContent>
 
           <TabsContent value="health" className="space-y-4 sm:space-y-6">
+            {connection.deviceId && (
+              <AIOptimizationPanel
+                deviceId={connection.deviceId}
+                sessionId={connection.sessionId}
+                batteryStatus={batteryStatus}
+                autoRefresh={true}
+              />
+            )}
+            
             <HealthReportCard 
               health={health} 
               showTrend 
