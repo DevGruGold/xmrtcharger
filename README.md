@@ -1,6 +1,7 @@
 # XMRT Charger ⚡
 
-> **Professional-Grade Battery Monitoring & Optimization Platform with Real-Time Device Engagement**
+> **Professional-Grade Battery Monitoring & Optimization Platform**  
+> *by Grounded Batteries, LLC*
 
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
@@ -8,11 +9,11 @@
 
 ## 🌟 Overview
 
-**XMRT Charger** is a sophisticated battery monitoring and charging optimization platform that combines real-time device analytics, AI-powered drain analysis, and blockchain-based Proof-of-Participation (PoP) rewards. Built for the modern connected ecosystem, it provides professional-grade insights into device battery health, charging patterns, and optimization opportunities.
+**XMRT Charger** by Grounded Batteries, LLC is a sophisticated battery monitoring and charging optimization platform that combines real-time device analytics, AI-powered optimization, and blockchain-based Proof-of-Participation (PoP) rewards. Built for the modern connected ecosystem, it provides professional-grade insights into device battery health, charging patterns, and intelligent optimization recommendations.
 
 ### Live Application
-- **Production URL**: https://xmrtcharger.vercel.app
-- **GitHub Repository**: https://github.com/DevGruGold/charger-boost-mode
+- **Production URL**: https://xmrtcharger.lovable.app
+- **Company**: Grounded Batteries, LLC
 
 ---
 

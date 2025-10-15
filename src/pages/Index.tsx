@@ -4,10 +4,17 @@ import { Web3Donation } from "@/components/Web3Donation";
 import { ProductXMRT } from "@/components/ProductXMRT";
 import { AppSelector } from "@/components/AppSelector";
 import { MaxChargingMode } from "@/components/MaxChargingMode";
+import { HeroSection } from "@/components/HeroSection";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
+import { useBattery } from "@/hooks/useBattery";
 
 const Index = () => {
   const connection = useDeviceConnection();
+  const { batteryStatus, deviceInfo } = useBattery({
+    deviceId: connection.deviceId,
+    sessionId: connection.sessionId || undefined,
+    logActivity: connection.logActivity,
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,6 +24,9 @@ const Index = () => {
             XMRT Charger
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
+            by Grounded Batteries, LLC
+          </p>
+          <p className="text-xs sm:text-sm text-muted-foreground/80">
             Professional Grade Charging Solutions
           </p>
         </div>
@@ -36,6 +46,16 @@ const Index = () => {
             }}
           />
         </div>
+
+        {batteryStatus && deviceInfo?.batterySupported && (
+          <div className="mb-6">
+            <HeroSection 
+              batteryStatus={batteryStatus}
+              deviceId={connection.deviceId}
+              sessionId={connection.sessionId}
+            />
+          </div>
+        )}
 
         <BatteryMonitorEnhanced />
         
