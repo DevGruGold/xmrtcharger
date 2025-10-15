@@ -11,7 +11,9 @@ const REWARD_CONFIG = {
   BASE_XMRT_PER_MINUTE: 0.2, // 1 XMRT per 5 minutes
   MAX_MODE_MULTIPLIER: 1.2, // +20% bonus for max charging mode
   CHARGING_MULTIPLIER: 1.5, // +50% bonus for active charging
+  MULTI_DEVICE_MULTIPLIER: 1.1, // +10% per additional device
   REWARD_CHECK_INTERVAL_SECONDS: 60, // Check every 60 seconds
+  MAX_BATTERY_LEVEL: 100, // Stop earning at 100% battery
 };
 
 serve(async (req) => {
@@ -25,7 +27,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { ipAddress, deviceId, sessionId, isCharging, maxModeEnabled } = await req.json();
+    const { ipAddress, deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled } = await req.json();
 
     if (!ipAddress) {
       return new Response(
@@ -71,6 +73,18 @@ serve(async (req) => {
       ? (now.getTime() - lastReward.getTime()) / 1000
       : REWARD_CONFIG.REWARD_CHECK_INTERVAL_SECONDS;
 
+    // Check if battery is at 100% - no rewards past full charge
+    if (batteryLevel >= REWARD_CONFIG.MAX_BATTERY_LEVEL) {
+      return new Response(
+        JSON.stringify({ 
+          awarded: false,
+          message: 'Battery at 100% - unplug to preserve battery health',
+          nextRewardIn: 0
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Only award if enough time has passed
     if (elapsedSeconds < REWARD_CONFIG.REWARD_CHECK_INTERVAL_SECONDS) {
       return new Response(
@@ -90,12 +104,20 @@ serve(async (req) => {
 
     if (maxModeEnabled) {
       multiplier *= REWARD_CONFIG.MAX_MODE_MULTIPLIER;
-      bonuses.push('Maximum Charging Mode');
+      bonuses.push('Maximum Charging Mode (+20%)');
     }
 
     if (isCharging) {
       multiplier *= REWARD_CONFIG.CHARGING_MULTIPLIER;
-      bonuses.push('Active Charging');
+      bonuses.push('Active Charging (+50%)');
+    }
+
+    // Multi-device bonus
+    const deviceCount = profile.device_ids.length;
+    if (deviceCount > 1) {
+      const multiDeviceBonus = 1 + ((deviceCount - 1) * (REWARD_CONFIG.MULTI_DEVICE_MULTIPLIER - 1));
+      multiplier *= multiDeviceBonus;
+      bonuses.push(`${deviceCount} Devices (+${((multiDeviceBonus - 1) * 100).toFixed(0)}%)`);
     }
 
     const finalAmount = baseAmount * multiplier;
@@ -130,7 +152,9 @@ serve(async (req) => {
           base_amount: baseAmount,
           bonuses,
           is_charging: isCharging,
+          battery_level: batteryLevel,
           max_mode_enabled: maxModeEnabled,
+          device_count: profile.device_ids.length,
         }
       });
 

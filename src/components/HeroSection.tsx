@@ -6,6 +6,7 @@ import { useRewardSystem } from '@/hooks/useRewardSystem';
 import { RewardParticleSystem } from './hero/RewardParticleSystem';
 import { TokenEarnedAnimation } from './hero/TokenEarnedAnimation';
 import { SoundManager } from './hero/SoundManager';
+import { supabase } from '@/integrations/supabase/client';
 import { Zap, Clock, TrendingUp } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -24,7 +25,7 @@ export const HeroSection = ({
   const [showReward, setShowReward] = useState(false);
   const [rewardAmount, setRewardAmount] = useState(0);
   const [showParticles, setShowParticles] = useState(false);
-  const [sessionStartTime] = useState(Date.now());
+  const [realSessionDuration, setRealSessionDuration] = useState(0);
 
   const { 
     totalXmrt, 
@@ -34,6 +35,7 @@ export const HeroSection = ({
     deviceId,
     sessionId,
     isCharging: batteryStatus?.charging || false,
+    batteryLevel: batteryStatus?.level || 0,
     maxModeEnabled,
     onRewardEarned: (data) => {
       setRewardAmount(data.amount || 0);
@@ -47,14 +49,28 @@ export const HeroSection = ({
     },
   });
 
-  // Calculate session duration
-  const [sessionDuration, setSessionDuration] = useState(0);
+  // Fetch real session duration from Supabase
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSessionDuration(Math.floor((Date.now() - sessionStartTime) / 1000));
-    }, 1000);
+    if (!sessionId) return;
+
+    const fetchSessionDuration = async () => {
+      const { data, error } = await supabase
+        .from('device_connection_sessions')
+        .select('connected_at')
+        .eq('id', sessionId)
+        .single();
+
+      if (data && !error) {
+        const connectedAt = new Date(data.connected_at).getTime();
+        const now = Date.now();
+        setRealSessionDuration(Math.floor((now - connectedAt) / 1000));
+      }
+    };
+
+    fetchSessionDuration();
+    const interval = setInterval(fetchSessionDuration, 5000); // Update every 5 seconds
     return () => clearInterval(interval);
-  }, [sessionStartTime]);
+  }, [sessionId]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -98,7 +114,7 @@ export const HeroSection = ({
               <div className="text-center p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <Clock className="h-5 w-5 mx-auto mb-2 text-primary" />
                 <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {formatTime(sessionDuration)}
+                  {formatTime(realSessionDuration)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">Time Online</div>
               </div>
@@ -139,7 +155,9 @@ export const HeroSection = ({
               <BatteryVisualization batteryStatus={batteryStatus} />
               
               <p className="text-sm text-muted-foreground text-center max-w-md">
-                Your device is being monitored in real-time. Keep charging to earn more XMRT tokens!
+                {batteryStatus?.level && batteryStatus.level >= 100 
+                  ? "⚠️ Battery at 100% - Unplug to preserve battery health and avoid overcharging" 
+                  : "Your device is being monitored in real-time. Keep charging to earn more XMRT tokens!"}
               </p>
             </div>
 
