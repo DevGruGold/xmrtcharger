@@ -30,9 +30,9 @@ interface AIOptimization {
 }
 
 interface AIOptimizationPanelProps {
-  deviceId: string;
+  deviceId: string | null;
   sessionId: string | null;
-  batteryStatus: BatteryStatus;
+  batteryStatus: BatteryStatus | null;
   autoRefresh?: boolean;
 }
 
@@ -59,9 +59,9 @@ export const AIOptimizationPanel = ({
           deviceId,
           sessionId,
           batteryStatus: {
-            level: batteryStatus.level,
-            charging: batteryStatus.charging,
-            chargingSpeed: batteryStatus.chargingSpeed,
+            level: batteryStatus?.level ?? 50,
+            charging: batteryStatus?.charging ?? false,
+            chargingSpeed: batteryStatus?.chargingSpeed ?? 'normal',
           },
           context: 'real-time',
         },
@@ -112,6 +112,20 @@ export const AIOptimizationPanel = ({
         <div className="flex items-center gap-2 text-destructive">
           <AlertTriangle className="w-5 h-5" />
           <span className="text-sm">AI Analysis unavailable: {error}</span>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!deviceId) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-center gap-3">
+          <Brain className="w-6 h-6 text-muted-foreground" />
+          <div className="text-center">
+            <p className="font-medium">Initializing Connection...</p>
+            <p className="text-xs text-muted-foreground mt-1">Setting up device monitoring</p>
+          </div>
         </div>
       </Card>
     );

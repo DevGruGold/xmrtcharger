@@ -4,7 +4,7 @@ import { AIOptimizationPanel } from './battery/AIOptimizationPanel';
 import { BatteryStatus } from '@/types/battery';
 
 interface HeroSectionProps {
-  batteryStatus: BatteryStatus;
+  batteryStatus: BatteryStatus | null;
   deviceId: string | null;
   sessionId: string | null;
 }
@@ -39,14 +39,12 @@ export const HeroSection = ({ batteryStatus, deviceId, sessionId }: HeroSectionP
                 Streaming real-time optimization feedback
               </p>
             </div>
-            {deviceId && (
-              <AIOptimizationPanel
-                deviceId={deviceId}
-                sessionId={sessionId}
-                batteryStatus={batteryStatus}
-                autoRefresh={true}
-              />
-            )}
+            <AIOptimizationPanel
+              deviceId={deviceId}
+              sessionId={sessionId}
+              batteryStatus={batteryStatus}
+              autoRefresh={true}
+            />
           </div>
         </div>
       </Card>

@@ -3,11 +3,13 @@ import { Battery, Zap } from 'lucide-react';
 import { getChargingSpeedColor } from './BatteryAnimation';
 
 interface BatteryVisualizationProps {
-  batteryStatus: BatteryStatus;
+  batteryStatus: BatteryStatus | null;
 }
 
 export const BatteryVisualization = ({ batteryStatus }: BatteryVisualizationProps) => {
-  const { level, charging, chargingSpeed } = batteryStatus;
+  const level = batteryStatus?.level ?? 50;
+  const charging = batteryStatus?.charging ?? false;
+  const chargingSpeed = batteryStatus?.chargingSpeed ?? 'normal';
 
   const getBatteryColor = () => {
     if (level <= 20) return 'hsl(var(--battery-critical))';

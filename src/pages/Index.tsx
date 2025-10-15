@@ -2,7 +2,6 @@ import { BatteryMonitorEnhanced } from "@/components/BatteryMonitorEnhanced";
 import { ContactFooter } from "@/components/ContactFooter";
 import { Web3Donation } from "@/components/Web3Donation";
 import { ProductXMRT } from "@/components/ProductXMRT";
-import { AppSelector } from "@/components/AppSelector";
 import { MaxChargingMode } from "@/components/MaxChargingMode";
 import { HeroSection } from "@/components/HeroSection";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
@@ -47,21 +46,15 @@ const Index = () => {
           />
         </div>
 
-        {batteryStatus && deviceInfo?.batterySupported && (
-          <div className="mb-6">
-            <HeroSection 
-              batteryStatus={batteryStatus}
-              deviceId={connection.deviceId}
-              sessionId={connection.sessionId}
-            />
-          </div>
-        )}
+        <div className="mb-6">
+          <HeroSection 
+            batteryStatus={batteryStatus}
+            deviceId={connection.deviceId}
+            sessionId={connection.sessionId}
+          />
+        </div>
 
         <BatteryMonitorEnhanced />
-        
-        <div className="mt-6">
-          <AppSelector />
-        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mt-6 sm:mt-8">
           <ProductXMRT />
