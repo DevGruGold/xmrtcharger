@@ -25,8 +25,9 @@ export const useBattery = (options?: UseBatteryOptions) => {
   const [drainAnalysis, setDrainAnalysis] = useState<DrainAnalysis | null>(null);
   const { toast } = useToast();
   
-  const deviceId = options?.deviceId || `device_${navigator.userAgent.slice(0, 50).replace(/\W/g, '_')}`;
-  const sessionId = options?.sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Use crypto.randomUUID() as fallback to ensure we always have valid UUIDs
+  const deviceId = options?.deviceId || crypto.randomUUID();
+  const sessionId = options?.sessionId || crypto.randomUUID();
 
   // Detect device info on mount
   useEffect(() => {

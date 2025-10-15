@@ -632,6 +632,56 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_thread_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string | null
+          thread_id: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          thread_id: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          thread_id?: string
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_thread_members_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          created_at: string | null
+          id: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+        }
+        Relationships: []
+      }
       community_messages: {
         Row: {
           author_id: string | null
@@ -1322,8 +1372,9 @@ export type Database = {
           id: string
           mentioned_to_user: boolean | null
           metadata: Json | null
-          status: string | null
+          status: string
           title: string
+          updated_at: string | null
         }
         Insert: {
           activity_type: string
@@ -1332,8 +1383,9 @@ export type Database = {
           id?: string
           mentioned_to_user?: boolean | null
           metadata?: Json | null
-          status?: string | null
+          status?: string
           title: string
+          updated_at?: string | null
         }
         Update: {
           activity_type?: string
@@ -1342,80 +1394,9 @@ export type Database = {
           id?: string
           mentioned_to_user?: boolean | null
           metadata?: Json | null
-          status?: string | null
+          status?: string
           title?: string
-        }
-        Relationships: []
-      }
-      eliza_python_executions: {
-        Row: {
-          code: string
-          created_at: string | null
-          error: string | null
-          execution_time_ms: number | null
-          exit_code: number | null
-          id: string
-          output: string | null
-          purpose: string | null
-          source: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          error?: string | null
-          execution_time_ms?: number | null
-          exit_code?: number | null
-          id?: string
-          output?: string | null
-          purpose?: string | null
-          source?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          error?: string | null
-          execution_time_ms?: number | null
-          exit_code?: number | null
-          id?: string
-          output?: string | null
-          purpose?: string | null
-          source?: string | null
-        }
-        Relationships: []
-      }
-      eliza_python_executions_archive: {
-        Row: {
-          code: string
-          created_at: string | null
-          error: string | null
-          execution_time_ms: number | null
-          exit_code: number | null
-          id: string
-          output: string | null
-          purpose: string | null
-          source: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string | null
-          error?: string | null
-          execution_time_ms?: number | null
-          exit_code?: number | null
-          id?: string
-          output?: string | null
-          purpose?: string | null
-          source?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string | null
-          error?: string | null
-          execution_time_ms?: number | null
-          exit_code?: number | null
-          id?: string
-          output?: string | null
-          purpose?: string | null
-          source?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1730,6 +1711,135 @@ export type Database = {
           response_time_ms?: number | null
           status?: string
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      github_contributions: {
+        Row: {
+          contribution_data: Json
+          contribution_type: Database["public"]["Enums"]["contribution_type"]
+          created_at: string | null
+          github_url: string
+          github_username: string
+          harm_reason: string | null
+          id: string
+          is_harmful: boolean | null
+          is_validated: boolean | null
+          metadata: Json | null
+          repo_name: string
+          repo_owner: string
+          reward_calculated_at: string | null
+          reward_paid_at: string | null
+          updated_at: string | null
+          validation_reason: string | null
+          validation_score: number | null
+          wallet_address: string
+          xmrt_earned: number | null
+        }
+        Insert: {
+          contribution_data?: Json
+          contribution_type: Database["public"]["Enums"]["contribution_type"]
+          created_at?: string | null
+          github_url: string
+          github_username: string
+          harm_reason?: string | null
+          id?: string
+          is_harmful?: boolean | null
+          is_validated?: boolean | null
+          metadata?: Json | null
+          repo_name: string
+          repo_owner: string
+          reward_calculated_at?: string | null
+          reward_paid_at?: string | null
+          updated_at?: string | null
+          validation_reason?: string | null
+          validation_score?: number | null
+          wallet_address: string
+          xmrt_earned?: number | null
+        }
+        Update: {
+          contribution_data?: Json
+          contribution_type?: Database["public"]["Enums"]["contribution_type"]
+          created_at?: string | null
+          github_url?: string
+          github_username?: string
+          harm_reason?: string | null
+          id?: string
+          is_harmful?: boolean | null
+          is_validated?: boolean | null
+          metadata?: Json | null
+          repo_name?: string
+          repo_owner?: string
+          reward_calculated_at?: string | null
+          reward_paid_at?: string | null
+          updated_at?: string | null
+          validation_reason?: string | null
+          validation_score?: number | null
+          wallet_address?: string
+          xmrt_earned?: number | null
+        }
+        Relationships: []
+      }
+      github_contributors: {
+        Row: {
+          avg_validation_score: number | null
+          ban_reason: string | null
+          created_at: string | null
+          first_contribution_at: string | null
+          github_username: string
+          harmful_contribution_count: number | null
+          id: string
+          is_active: boolean | null
+          is_banned: boolean | null
+          last_contribution_at: string | null
+          metadata: Json | null
+          pat_last_validated: string | null
+          target_repo_name: string | null
+          target_repo_owner: string | null
+          total_contributions: number | null
+          total_xmrt_earned: number | null
+          updated_at: string | null
+          wallet_address: string
+        }
+        Insert: {
+          avg_validation_score?: number | null
+          ban_reason?: string | null
+          created_at?: string | null
+          first_contribution_at?: string | null
+          github_username: string
+          harmful_contribution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_banned?: boolean | null
+          last_contribution_at?: string | null
+          metadata?: Json | null
+          pat_last_validated?: string | null
+          target_repo_name?: string | null
+          target_repo_owner?: string | null
+          total_contributions?: number | null
+          total_xmrt_earned?: number | null
+          updated_at?: string | null
+          wallet_address: string
+        }
+        Update: {
+          avg_validation_score?: number | null
+          ban_reason?: string | null
+          created_at?: string | null
+          first_contribution_at?: string | null
+          github_username?: string
+          harmful_contribution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_banned?: boolean | null
+          last_contribution_at?: string | null
+          metadata?: Json | null
+          pat_last_validated?: string | null
+          target_repo_name?: string | null
+          target_repo_owner?: string | null
+          total_contributions?: number | null
+          total_xmrt_earned?: number | null
+          updated_at?: string | null
+          wallet_address?: string
         }
         Relationships: []
       }
@@ -2630,6 +2740,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string
+          device_ids: string[] | null
+          id: string
+          ip_address: unknown
+          last_reward_at: string | null
+          metadata: Json | null
+          total_time_online_seconds: number
+          total_xmrt_earned: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_ids?: string[] | null
+          id?: string
+          ip_address: unknown
+          last_reward_at?: string | null
+          metadata?: Json | null
+          total_time_online_seconds?: number
+          total_xmrt_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_ids?: string[] | null
+          id?: string
+          ip_address?: unknown
+          last_reward_at?: string | null
+          metadata?: Json | null
+          total_time_online_seconds?: number
+          total_xmrt_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_worker_mappings: {
         Row: {
           alias: string | null
@@ -2810,6 +2956,30 @@ export type Database = {
           request_path?: string | null
           response_status?: number | null
           status?: string
+        }
+        Relationships: []
+      }
+      visitor_links: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          visitor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          visitor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          visitor_id?: string
         }
         Relationships: []
       }
@@ -3161,6 +3331,81 @@ export type Database = {
           },
         ]
       }
+      xmrt_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          device_id: string | null
+          id: string
+          metadata: Json | null
+          multiplier: number | null
+          reason: string | null
+          session_id: string | null
+          transaction_type: string
+          user_profile_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          metadata?: Json | null
+          multiplier?: number | null
+          reason?: string | null
+          session_id?: string | null
+          transaction_type: string
+          user_profile_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          metadata?: Json | null
+          multiplier?: number | null
+          reason?: string | null
+          session_id?: string | null
+          transaction_type?: string
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xmrt_transactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "active_devices_view"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "active_devices_view"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "device_connection_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       active_devices_view: {
@@ -3176,32 +3421,6 @@ export type Database = {
           session_id: string | null
           wallet_address: string | null
           worker_id: string | null
-        }
-        Relationships: []
-      }
-      eliza_gatekeeper_stats: {
-        Row: {
-          avg_duration_ms: number | null
-          failed_calls: number | null
-          last_call_at: string | null
-          source: string | null
-          successful_calls: number | null
-          target: string | null
-          total_calls: number | null
-        }
-        Relationships: []
-      }
-      eliza_python_executions_all: {
-        Row: {
-          code: string | null
-          created_at: string | null
-          error: string | null
-          execution_time_ms: number | null
-          exit_code: number | null
-          id: string | null
-          output: string | null
-          purpose: string | null
-          source: string | null
         }
         Relationships: []
       }
@@ -3244,17 +3463,6 @@ export type Database = {
           frontend_uptime_checks: number | null
           messages_last_hour: number | null
           recent_function_errors: number | null
-        }
-        Relationships: []
-      }
-      v_agent_python_failures: {
-        Row: {
-          common_purposes: Json | null
-          failed_count: number | null
-          last_failure: string | null
-          source: string | null
-          success_count: number | null
-          success_rate_percent: number | null
         }
         Relationships: []
       }
@@ -3301,10 +3509,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
       calculate_charging_pop_points: {
         Args: {
           p_battery_contribution?: number
@@ -3325,61 +3529,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
+      get_xmrt_charger_leaderboard: {
+        Args: { limit_count?: number }
+        Returns: {
+          avg_efficiency: number
+          battery_health: number
+          device_fingerprint: string
+          device_type: string
+          last_active: string
+          total_charging_sessions: number
+          total_pop_points: number
+        }[]
       }
       increment_rate_limit: {
         Args: { p_endpoint: string; p_identifier: string }
         Returns: undefined
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
       }
       match_knowledge_entities: {
         Args: { match_count?: number; search_query: string }
@@ -3416,45 +3580,9 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       update_session_heartbeat: {
         Args: { p_session_id: string }
         Returns: undefined
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
       }
     }
     Enums: {
@@ -3482,6 +3610,7 @@ export type Database = {
         | "send_notification"
         | "request_diagnostic_report"
         | "update_configuration"
+      contribution_type: "commit" | "issue" | "pr" | "discussion" | "comment"
       pop_event_type:
         | "charging_session_completed"
         | "calibration_performed"
@@ -3645,6 +3774,7 @@ export const Constants = {
         "request_diagnostic_report",
         "update_configuration",
       ],
+      contribution_type: ["commit", "issue", "pr", "discussion", "comment"],
       pop_event_type: [
         "charging_session_completed",
         "calibration_performed",

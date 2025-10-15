@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.ai-battery-optimizer]
 verify_jwt = false
+
+[functions.award-xmrt-tokens]
+verify_jwt = false

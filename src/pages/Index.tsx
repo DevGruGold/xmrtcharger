@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BatteryMonitorEnhanced } from "@/components/BatteryMonitorEnhanced";
 import { ContactFooter } from "@/components/ContactFooter";
 import { Web3Donation } from "@/components/Web3Donation";
@@ -8,6 +9,7 @@ import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
 
 const Index = () => {
+  const [maxModeEnabled, setMaxModeEnabled] = useState(false);
   const connection = useDeviceConnection();
   const { batteryStatus, deviceInfo } = useBattery({
     deviceId: connection.deviceId,
@@ -45,10 +47,19 @@ const Index = () => {
         </header>
 
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-          {/* Max Charging Mode */}
+          {/* Hero Section with Reward System */}
+          <HeroSection 
+            batteryStatus={batteryStatus}
+            deviceId={connection.deviceId}
+            sessionId={connection.sessionId}
+            maxModeEnabled={maxModeEnabled}
+          />
+
+          {/* Max Charging Mode - Moved to settings area */}
           <div className="max-w-2xl mx-auto">
             <MaxChargingMode 
               onModeChange={(enabled) => {
+                setMaxModeEnabled(enabled);
                 if (connection.logActivity) {
                   connection.logActivity(
                     'max_charging_mode',
@@ -61,13 +72,6 @@ const Index = () => {
               }}
             />
           </div>
-
-          {/* Hero Section */}
-          <HeroSection 
-            batteryStatus={batteryStatus}
-            deviceId={connection.deviceId}
-            sessionId={connection.sessionId}
-          />
 
           {/* Battery Monitor */}
           <BatteryMonitorEnhanced />

@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isValidUUID(value: string): boolean {
+  return UUID_REGEX.test(value);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,12 +36,35 @@ serve(async (req) => {
       metadata 
     } = await req.json();
 
+    // Validate UUIDs
+    if (!isValidUUID(deviceId)) {
+      console.error('Invalid deviceId format:', deviceId);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid deviceId format. Must be a valid UUID.',
+          received: deviceId 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (sessionId && !isValidUUID(sessionId)) {
+      console.error('Invalid sessionId format:', sessionId);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid sessionId format. Must be a valid UUID or null.',
+          received: sessionId 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Record battery reading
     const { error: readingError } = await supabaseClient
       .from('battery_readings')
       .insert({
         device_id: deviceId,
-        session_id: sessionId,
+        session_id: sessionId || null,
         battery_level: batteryLevel,
         is_charging: isCharging,
         charging_time_remaining: chargingTimeRemaining,
@@ -44,7 +74,10 @@ serve(async (req) => {
         metadata: metadata || {}
       });
 
-    if (readingError) throw readingError;
+    if (readingError) {
+      console.error('Error inserting battery reading:', readingError);
+      throw readingError;
+    }
 
     // Calculate health metrics from recent sessions
     const { data: recentReadings } = await supabaseClient
@@ -70,6 +103,8 @@ serve(async (req) => {
     if (sessions && sessions.length > 0) {
       avgEfficiency = sessions.reduce((sum, s) => sum + (s.efficiency_score || 85), 0) / sessions.length;
     }
+
+    console.log('✅ Battery reading recorded successfully');
 
     return new Response(
       JSON.stringify({ 
