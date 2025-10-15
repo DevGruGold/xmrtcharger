@@ -11,32 +11,46 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ batteryStatus, deviceId, sessionId }: HeroSectionProps) => {
   return (
-    <div className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 pointer-events-none" />
-      
-      <Card className="relative backdrop-blur-sm bg-card/80 border-primary/20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+    <div className="relative">
+      <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-xl glow-primary">
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
+        
+        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 lg:p-8">
           {/* Left: Battery Animation */}
-          <div className="flex flex-col justify-center">
-            <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent mb-2">
-                Real-Time Battery Status
+          <div className="flex flex-col justify-center space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-block px-4 py-1 rounded-full bg-primary/10 border border-primary/20 mb-2">
+                <span className="text-xs font-medium text-primary tracking-wider uppercase">Live Monitoring</span>
+              </div>
+              <h2 className="text-3xl font-bold">
+                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  Battery Status
+                </span>
               </h2>
               <p className="text-sm text-muted-foreground">
-                Live monitoring with intelligent optimization
+                Real-time intelligent optimization
               </p>
             </div>
             <BatteryVisualization batteryStatus={batteryStatus} />
           </div>
 
+          {/* Divider */}
+          <div className="hidden lg:block absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-border to-transparent" />
+
           {/* Right: AI Optimization */}
-          <div className="flex flex-col">
-            <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-primary bg-clip-text text-transparent mb-2">
-                AI-Powered Insights
+          <div className="flex flex-col space-y-6">
+            <div className="text-center space-y-2">
+              <div className="inline-block px-4 py-1 rounded-full bg-secondary/10 border border-secondary/20 mb-2">
+                <span className="text-xs font-medium text-secondary tracking-wider uppercase">AI Powered</span>
+              </div>
+              <h2 className="text-3xl font-bold">
+                <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+                  Smart Insights
+                </span>
               </h2>
               <p className="text-sm text-muted-foreground">
-                Streaming real-time optimization feedback
+                Streaming optimization feedback
               </p>
             </div>
             <AIOptimizationPanel

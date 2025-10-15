@@ -58,8 +58,8 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				charging: '#22c55e',
-				discharging: '#f59e0b',
+				charging: 'hsl(var(--charging-fast))',
+				discharging: 'hsl(var(--battery-low))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
