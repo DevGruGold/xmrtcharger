@@ -4,10 +4,10 @@ import { BatteryVisualization } from './battery/BatteryVisualization';
 import { BatteryStatus } from '@/types/battery';
 import { useRewardSystem } from '@/hooks/useRewardSystem';
 import { RewardParticleSystem } from './hero/RewardParticleSystem';
-import { TokenEarnedAnimation } from './hero/TokenEarnedAnimation';
 import { SoundManager } from './hero/SoundManager';
 import { supabase } from '@/integrations/supabase/client';
 import { Zap, Clock, TrendingUp } from 'lucide-react';
+import { motion, useSpring, useTransform } from 'framer-motion';
 
 interface HeroSectionProps {
   batteryStatus: BatteryStatus | null;
@@ -22,10 +22,13 @@ export const HeroSection = ({
   sessionId,
   maxModeEnabled 
 }: HeroSectionProps) => {
-  const [showReward, setShowReward] = useState(false);
-  const [rewardAmount, setRewardAmount] = useState(0);
   const [showParticles, setShowParticles] = useState(false);
   const [realSessionDuration, setRealSessionDuration] = useState(0);
+
+  // Smooth animation springs for numbers
+  const xmrtSpring = useSpring(0, { stiffness: 50, damping: 20 });
+  const timeSpring = useSpring(0, { stiffness: 50, damping: 20 });
+  const nextRewardSpring = useSpring(0, { stiffness: 50, damping: 20 });
 
   const { 
     totalXmrt, 
@@ -38,16 +41,27 @@ export const HeroSection = ({
     batteryLevel: batteryStatus?.level || 0,
     maxModeEnabled,
     onRewardEarned: (data) => {
-      setRewardAmount(data.amount || 0);
-      setShowReward(true);
       setShowParticles(true);
-      
-      // Hide animations after duration
-      setTimeout(() => {
-        setShowReward(false);
-      }, 3000);
     },
   });
+
+  // Update springs when values change
+  useEffect(() => {
+    xmrtSpring.set(totalXmrt);
+  }, [totalXmrt, xmrtSpring]);
+
+  useEffect(() => {
+    timeSpring.set(realSessionDuration);
+  }, [realSessionDuration, timeSpring]);
+
+  useEffect(() => {
+    nextRewardSpring.set(timeUntilNextReward);
+  }, [timeUntilNextReward, nextRewardSpring]);
+
+  // Transform springs to formatted strings
+  const displayXmrt = useTransform(xmrtSpring, (value) => value.toFixed(2));
+  const displayTime = useTransform(timeSpring, (value) => formatTime(Math.floor(value)));
+  const displayNextReward = useTransform(nextRewardSpring, (value) => formatTime(Math.floor(value)));
 
   // Fetch real session duration from Supabase
   useEffect(() => {
@@ -86,18 +100,12 @@ export const HeroSection = ({
   return (
     <>
       {/* Sound Manager */}
-      <SoundManager onRewardEarned={showReward} />
+      <SoundManager onRewardEarned={showParticles} />
 
       {/* Reward Animations */}
       <RewardParticleSystem 
         isActive={showParticles} 
         onComplete={() => setShowParticles(false)} 
-      />
-      
-      <TokenEarnedAnimation 
-        amount={rewardAmount} 
-        isVisible={showReward}
-        onComplete={() => setShowReward(false)}
       />
 
       {/* Main Hero Card */}
@@ -113,27 +121,27 @@ export const HeroSection = ({
               {/* Time Online */}
               <div className="text-center p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <Clock className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {formatTime(realSessionDuration)}
-                </div>
+                <motion.div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {displayTime}
+                </motion.div>
                 <div className="text-xs text-muted-foreground mt-1">Time Online</div>
               </div>
 
               {/* XMRT Earned */}
               <div className="text-center p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 glow-secondary">
                 <TrendingUp className="h-5 w-5 mx-auto mb-2 text-secondary" />
-                <div className="text-2xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
-                  {totalXmrt.toFixed(2)}
-                </div>
+                <motion.div className="text-2xl font-bold bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+                  {displayXmrt}
+                </motion.div>
                 <div className="text-xs text-muted-foreground mt-1">XMRT Earned</div>
               </div>
 
               {/* Next Reward */}
               <div className="text-center p-4 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
                 <Zap className="h-5 w-5 mx-auto mb-2 text-accent" />
-                <div className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-                  {formatTime(timeUntilNextReward)}
-                </div>
+                <motion.div className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+                  {displayNextReward}
+                </motion.div>
                 <div className="text-xs text-muted-foreground mt-1">Next Reward</div>
               </div>
             </div>
