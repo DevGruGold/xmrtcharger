@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
 
@@ -29,9 +30,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY not configured');
     }
 
     const requestData: OptimizationRequest = await req.json();
@@ -109,27 +110,28 @@ Format your response as JSON with this structure:
   "insights": string
 }`;
 
-    // Call Lovable AI
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Call OpenAI for intelligent analysis
+    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.7,
+        max_completion_tokens: 1500,
+        response_format: { type: "json_object" }
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('AI Gateway Error:', aiResponse.status, errorText);
-      throw new Error(`AI Gateway failed: ${aiResponse.status}`);
+      console.error('OpenAI API Error:', aiResponse.status, errorText);
+      throw new Error(`OpenAI API failed: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
@@ -137,16 +139,10 @@ Format your response as JSON with this structure:
     
     console.log('🤖 AI Response:', aiContent);
 
-    // Parse AI response
+    // Parse AI response (should be JSON due to response_format)
     let optimization;
     try {
-      // Try to extract JSON from response
-      const jsonMatch = aiContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        optimization = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No JSON found in AI response');
-      }
+      optimization = JSON.parse(aiContent);
     } catch (parseError) {
       console.warn('Failed to parse AI response as JSON, creating structured fallback:', parseError);
       optimization = {

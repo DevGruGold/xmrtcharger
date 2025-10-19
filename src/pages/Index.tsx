@@ -5,6 +5,7 @@ import { Web3Donation } from "@/components/Web3Donation";
 import { ProductXMRT } from "@/components/ProductXMRT";
 import { MaxChargingMode } from "@/components/MaxChargingMode";
 import { HeroSection } from "@/components/HeroSection";
+import { AIOptimizationInsights } from "@/components/battery/AIOptimizationInsights";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
 
@@ -53,6 +54,13 @@ const Index = () => {
             deviceId={connection.deviceId}
             sessionId={connection.sessionId}
             maxModeEnabled={maxModeEnabled}
+          />
+
+          {/* AI Battery Optimization Insights */}
+          <AIOptimizationInsights 
+            batteryStatus={batteryStatus}
+            deviceId={connection.deviceId}
+            sessionId={connection.sessionId}
           />
 
           {/* Max Charging Mode - Moved to settings area */}
