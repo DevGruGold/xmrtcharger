@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.validate-pop-event]
 verify_jwt = false
 
+[functions.ai-chat]
+verify_jwt = false
+
 [functions.aggregate-device-metrics]
 verify_jwt = false
 
