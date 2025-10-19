@@ -95,6 +95,26 @@ export const useRewardSystem = ({
   const checkRewards = useCallback(async () => {
     if (!deviceId || state.isChecking) return;
 
+    // Don't check if not charging - XMRT only awarded when charging
+    if (!isCharging) {
+      console.log('⚠️ Not charging - rewards paused');
+      setState(prev => ({
+        ...prev,
+        timeUntilNextReward: 0,
+      }));
+      return;
+    }
+
+    // Don't check if battery is at 100%
+    if (batteryLevel >= 100) {
+      console.log('⚠️ Battery at 100% - rewards paused');
+      setState(prev => ({
+        ...prev,
+        timeUntilNextReward: 0,
+      }));
+      return;
+    }
+
     const ip = await getIpAddress();
     if (!ip) return;
 
@@ -128,7 +148,7 @@ export const useRewardSystem = ({
         }
 
         console.log('🎉 Earned XMRT:', data.amount);
-      } else if (data.nextRewardIn) {
+      } else if (data.nextRewardIn !== undefined) {
         setState(prev => ({
           ...prev,
           timeUntilNextReward: data.nextRewardIn,

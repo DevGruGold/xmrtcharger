@@ -164,9 +164,11 @@ export const HeroSection = ({
               <BatteryVisualization batteryStatus={batteryStatus} />
               
               <p className="text-sm text-muted-foreground text-center max-w-md">
-                {batteryStatus?.level && batteryStatus.level >= 100 
-                  ? "⚠️ Battery at 100% - Unplug to preserve battery health and avoid overcharging" 
-                  : "Your device is being monitored in real-time. Keep charging to earn more XMRT tokens!"}
+                {!batteryStatus?.charging
+                  ? "⚡ Connect your charger to start earning XMRT tokens!" 
+                  : batteryStatus.level && batteryStatus.level >= 100 
+                    ? "⚠️ Battery at 100% - Unplug to preserve battery health and avoid overcharging" 
+                    : "Your device is charging! Keep charging to earn more XMRT tokens!"}
               </p>
             </div>
 
