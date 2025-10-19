@@ -16,6 +16,18 @@ interface HeroSectionProps {
   maxModeEnabled: boolean;
 }
 
+// Helper function to format time (defined before usage)
+const formatTime = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}m ${secs}s`;
+};
+
 export const HeroSection = ({ 
   batteryStatus, 
   deviceId, 
@@ -85,17 +97,6 @@ export const HeroSection = ({
     const interval = setInterval(fetchSessionDuration, 5000); // Update every 5 seconds
     return () => clearInterval(interval);
   }, [sessionId]);
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
-    return `${mins}m ${secs}s`;
-  };
 
   return (
     <>
