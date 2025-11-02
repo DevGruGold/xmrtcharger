@@ -6,8 +6,10 @@ import { ProductXMRT } from "@/components/ProductXMRT";
 import { MaxChargingMode } from "@/components/MaxChargingMode";
 import { HeroSection } from "@/components/HeroSection";
 import { AIOptimizationInsights } from "@/components/battery/AIOptimizationInsights";
+import { AirplaneModeCoach } from "@/components/battery/AirplaneModeCoach";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 const Index = () => {
   const [maxModeEnabled, setMaxModeEnabled] = useState(false);
@@ -16,6 +18,10 @@ const Index = () => {
     deviceId: connection.deviceId,
     sessionId: connection.sessionId || undefined,
     logActivity: connection.logActivity,
+  });
+
+  const networkStatus = useNetworkStatus({
+    isCharging: batteryStatus?.charging || false,
   });
 
   return (
@@ -54,6 +60,14 @@ const Index = () => {
             deviceId={connection.deviceId}
             sessionId={connection.sessionId}
             maxModeEnabled={maxModeEnabled}
+          />
+
+          {/* Airplane Mode Coach */}
+          <AirplaneModeCoach
+            isCharging={batteryStatus?.charging || false}
+            isAirplaneMode={networkStatus.isAirplaneMode}
+            airplaneModeDuration={networkStatus.airplaneModeDuration}
+            batteryLevel={batteryStatus?.level || 0}
           />
 
           {/* AI Battery Optimization Insights */}

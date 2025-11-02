@@ -4,15 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useBatteryOptimizer } from '@/hooks/useBatteryOptimizer';
 import { BatteryStatus } from '@/types/battery';
-import { 
-  Brain, 
-  AlertTriangle, 
-  CheckCircle, 
-  TrendingUp, 
-  Lightbulb,
-  Loader2,
-  RefreshCw
-} from 'lucide-react';
+import { Brain, Sparkles, AlertTriangle, CheckCircle, TrendingUp, Zap, Target, Lightbulb, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AIOptimizationInsightsProps {
@@ -57,6 +50,13 @@ export const AIOptimizationInsights = ({
     }
   };
 
+  const getHealthBadgeVariant = (score: number) => {
+    if (score >= 80) return 'default';
+    if (score >= 60) return 'secondary';
+    if (score >= 40) return 'outline';
+    return 'destructive';
+  };
+
   const getHealthColor = (status: string) => {
     switch (status) {
       case 'excellent': return 'text-green-500';
@@ -90,194 +90,229 @@ export const AIOptimizationInsights = ({
   }
 
   return (
-    <Card className="p-6 space-y-6 border-primary/20 bg-card/50 backdrop-blur-xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Brain className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold">AI Battery Insights</h3>
-            <p className="text-sm text-muted-foreground">
-              Powered by advanced AI analysis
-            </p>
-          </div>
-        </div>
-
-        <Button
-          onClick={handleAnalyze}
-          disabled={isAnalyzing}
-          size="sm"
-          variant="outline"
-        >
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Analyze Now
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Error State */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Optimization Results */}
-      {optimization && (
-        <div className="space-y-6">
-          {/* Health Score */}
-          <div className="text-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-            <div className="text-5xl font-bold mb-2">
-              <span className={getHealthColor(optimization.status)}>
-                {optimization.healthScore}
-              </span>
-              <span className="text-2xl text-muted-foreground">/100</span>
+    <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-xl">
+      {/* Animated background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" />
+      
+      <div className="relative p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <motion.div 
+              className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30"
+              animate={{ 
+                boxShadow: [
+                  '0 0 20px rgba(59, 130, 246, 0.3)',
+                  '0 0 30px rgba(59, 130, 246, 0.5)',
+                  '0 0 20px rgba(59, 130, 246, 0.3)',
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Brain className="h-6 w-6 text-primary" />
+            </motion.div>
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                AI Battery Optimizer
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Intelligent analysis & personalized recommendations
+              </p>
             </div>
-            <Badge variant="outline" className={`${getHealthColor(optimization.status)} border-current`}>
-              {optimization.status.toUpperCase()}
-            </Badge>
-            <p className="text-sm text-muted-foreground mt-2">
-              Overall Battery Health
-            </p>
           </div>
 
-          {/* Immediate Actions */}
-          {optimization.immediateActions && optimization.immediateActions.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                Immediate Actions Required
-              </h4>
-              <div className="space-y-2">
-                {optimization.immediateActions.map((action, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-background/50 border border-border/50 flex items-start gap-3"
-                  >
-                    <span className="text-xl">{getImpactIcon(action.impact)}</span>
-                    <div className="flex-1">
-                      <p className="font-medium">{action.action}</p>
-                      <p className="text-sm text-muted-foreground">{action.reason}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Short-term Optimizations */}
-          {optimization.shortTermOptimizations && optimization.shortTermOptimizations.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
-                Short-term Improvements
-              </h4>
-              <div className="space-y-2">
-                {optimization.shortTermOptimizations.map((opt, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20"
-                  >
-                    <p className="font-medium">{opt.action}</p>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                      <span>⏱️ {opt.timeframe}</span>
-                      <span>•</span>
-                      <span>📈 {opt.expectedImprovement}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Long-term Recommendations */}
-          {optimization.longTermRecommendations && optimization.longTermRecommendations.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-yellow-500" />
-                Long-term Best Practices
-              </h4>
-              <div className="space-y-2">
-                {optimization.longTermRecommendations.map((rec, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/20"
-                  >
-                    <p className="font-medium">{rec.action}</p>
-                    <p className="text-sm text-muted-foreground mt-1">✅ {rec.benefit}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Risk Assessment */}
-          {optimization.riskAssessment && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Risk Assessment
-              </h4>
-              <div className={`p-4 rounded-lg border ${getRiskColor(optimization.riskAssessment.level)}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Risk Level</span>
-                  <Badge variant="outline" className="border-current">
-                    {optimization.riskAssessment.level.toUpperCase()}
-                  </Badge>
-                </div>
-                {optimization.riskAssessment.concerns.length > 0 && (
-                  <ul className="space-y-1 mt-2">
-                    {optimization.riskAssessment.concerns.map((concern, idx) => (
-                      <li key={idx} className="text-sm flex items-start gap-2">
-                        <span>•</span>
-                        <span>{concern}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* AI Insights */}
-          {optimization.insights && (
-            <div className="p-4 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
-              <p className="text-sm leading-relaxed">{optimization.insights}</p>
-            </div>
-          )}
-
-          {/* Last Analyzed */}
-          {lastAnalyzed && (
-            <p className="text-xs text-center text-muted-foreground">
-              Last analyzed: {lastAnalyzed.toLocaleTimeString()}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!optimization && !isAnalyzing && !error && (
-        <div className="text-center py-8">
-          <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-          <p className="text-muted-foreground mb-4">
-            Get personalized battery optimization insights powered by AI
-          </p>
-          <Button onClick={handleAnalyze} variant="outline">
-            Run AI Analysis
+          <Button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || !batteryStatus}
+            className="relative overflow-hidden group"
+            size="lg"
+          >
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 group-hover:opacity-20 transition-opacity"
+              animate={{
+                x: ['0%', '100%'],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'linear'
+              }}
+            />
+            {isAnalyzing ? (
+              <>
+                <Sparkles className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing Battery...
+              </>
+            ) : (
+              <>
+                <Brain className="mr-2 h-4 w-4" />
+                Analyze Battery Health
+              </>
+            )}
           </Button>
         </div>
-      )}
+
+        {/* Error State */}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span>{error}</span>
+          </motion.div>
+        )}
+
+        {/* Optimization Results */}
+        {optimization && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+          >
+            {/* Health Score Card */}
+            <Card className="p-6 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 border-primary/30 glow-primary">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/20">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Battery Health Score</h3>
+                    <p className="text-xs text-muted-foreground">AI-powered analysis</p>
+                  </div>
+                </div>
+                <Badge 
+                  variant={getHealthBadgeVariant(optimization.healthScore)}
+                  className="text-lg px-4 py-2"
+                >
+                  {optimization.healthScore}/100
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">{optimization.status}</p>
+            </Card>
+
+            {/* Immediate Actions */}
+            {optimization.immediateActions && optimization.immediateActions.length > 0 && (
+              <Card className="p-5 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-accent/20">
+                    <AlertTriangle className="h-5 w-5 text-accent" />
+                  </div>
+                  <h3 className="font-semibold text-base">Immediate Actions Required</h3>
+                </div>
+                <ul className="space-y-3">
+                  {optimization.immediateActions.map((action: any, idx: number) => (
+                    <motion.li 
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="text-sm flex items-start gap-3 p-3 rounded-lg bg-background/50 border border-accent/20"
+                    >
+                      <Zap className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{action.action || action}</p>
+                        {action.reason && <p className="text-xs text-muted-foreground mt-1">{action.reason}</p>}
+                      </div>
+                    </motion.li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {/* Short-term Optimizations */}
+            {optimization.shortTermOptimizations && optimization.shortTermOptimizations.length > 0 && (
+              <Card className="p-5 bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-secondary/20">
+                    <Target className="h-5 w-5 text-secondary" />
+                  </div>
+                  <h3 className="font-semibold text-base">Quick Wins</h3>
+                </div>
+                <ul className="space-y-3">
+                  {optimization.shortTermOptimizations.map((opt: any, idx: number) => (
+                    <motion.li 
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="text-sm flex items-start gap-3"
+                    >
+                      <CheckCircle className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{opt.action || opt}</p>
+                        {opt.timeframe && <p className="text-xs text-muted-foreground mt-1">⏱️ {opt.timeframe}</p>}
+                      </div>
+                    </motion.li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {/* Long-term Recommendations */}
+            {optimization.longTermRecommendations && optimization.longTermRecommendations.length > 0 && (
+              <Card className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-lg bg-primary/20">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-base">Long-term Strategy</h3>
+                </div>
+                <ul className="space-y-3">
+                  {optimization.longTermRecommendations.map((rec: any, idx: number) => (
+                    <motion.li 
+                      key={idx}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="text-sm flex items-start gap-3"
+                    >
+                      <TrendingUp className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{rec.action || rec}</p>
+                        {rec.benefit && <p className="text-xs text-muted-foreground mt-1">✅ {rec.benefit}</p>}
+                      </div>
+                    </motion.li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {/* AI Insights */}
+            {optimization.insights && (
+              <Card className="p-5 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-primary/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20"
+                  >
+                    <Brain className="h-5 w-5 text-primary" />
+                  </motion.div>
+                  <h3 className="font-semibold text-base">AI Analysis Summary</h3>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{optimization.insights}</p>
+              </Card>
+            )}
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!optimization && !isAnalyzing && !error && (
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-muted-foreground mb-4">
+              Get personalized battery optimization insights powered by AI
+            </p>
+            <Button onClick={handleAnalyze} variant="outline">
+              Run AI Analysis
+            </Button>
+          </div>
+        )}
+      </div>
     </Card>
   );
 };

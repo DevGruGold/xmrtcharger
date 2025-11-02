@@ -11,6 +11,7 @@ const REWARD_CONFIG = {
   BASE_XMRT_PER_MINUTE: 0.2, // 1 XMRT per 5 minutes
   MAX_MODE_MULTIPLIER: 1.2, // +20% bonus for max charging mode
   CHARGING_MULTIPLIER: 1.5, // +50% bonus for active charging
+  AIRPLANE_MODE_MULTIPLIER: 1.3, // +30% bonus for airplane mode (optimal charging)
   MULTI_DEVICE_MULTIPLIER: 1.1, // +10% per additional device
   REWARD_CHECK_INTERVAL_SECONDS: 60, // Check every 60 seconds
   MAX_BATTERY_LEVEL: 100, // Stop earning at 100% battery
@@ -27,9 +28,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const { ipAddress, deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled } = await req.json();
+    const { ipAddress, deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, isOffline } = await req.json();
 
-    console.log('💰 Award XMRT Request:', { ipAddress, deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled });
+    console.log('💰 Award XMRT Request:', { ipAddress, deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, isOffline });
 
     if (!ipAddress) {
       return new Response(
@@ -138,6 +139,13 @@ serve(async (req) => {
     multiplier *= REWARD_CONFIG.CHARGING_MULTIPLIER;
     bonuses.push('Active Charging (+50%)');
 
+    // Airplane mode bonus (offline charging = optimal charging)
+    if (isOffline) {
+      multiplier *= REWARD_CONFIG.AIRPLANE_MODE_MULTIPLIER;
+      bonuses.push('Airplane Mode (+30%)');
+      console.log('✈️ Airplane mode bonus applied - optimal charging detected');
+    }
+
     // Multi-device/browser bonus (multiple devices from same IP)
     const deviceCount = profile.device_ids.length;
     if (deviceCount > 1) {
@@ -181,6 +189,7 @@ serve(async (req) => {
           is_charging: isCharging,
           battery_level: batteryLevel,
           max_mode_enabled: maxModeEnabled,
+          is_offline: isOffline || false,
           device_count: profile.device_ids.length,
         }
       });

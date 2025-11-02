@@ -6,8 +6,9 @@ import { useRewardSystem } from '@/hooks/useRewardSystem';
 import { RewardParticleSystem } from './hero/RewardParticleSystem';
 import { SoundManager } from './hero/SoundManager';
 import { supabase } from '@/integrations/supabase/client';
-import { Zap, Clock, TrendingUp } from 'lucide-react';
+import { Zap, Clock, TrendingUp, Plane } from 'lucide-react';
 import { motion, useSpring, useTransform } from 'framer-motion';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 interface HeroSectionProps {
   batteryStatus: BatteryStatus | null;
@@ -37,6 +38,11 @@ export const HeroSection = ({
   const [showParticles, setShowParticles] = useState(false);
   const [realSessionDuration, setRealSessionDuration] = useState(0);
 
+  // Network status for airplane mode detection
+  const networkStatus = useNetworkStatus({ 
+    isCharging: batteryStatus?.charging || false 
+  });
+
   // Smooth animation springs for numbers
   const xmrtSpring = useSpring(0, { stiffness: 50, damping: 20 });
   const timeSpring = useSpring(0, { stiffness: 50, damping: 20 });
@@ -52,6 +58,7 @@ export const HeroSection = ({
     isCharging: batteryStatus?.charging || false,
     batteryLevel: batteryStatus?.level || 0,
     maxModeEnabled,
+    isOffline: networkStatus.isAirplaneMode,
     onRewardEarned: (data) => {
       setShowParticles(true);
     },
@@ -173,18 +180,28 @@ export const HeroSection = ({
             </div>
 
             {/* Bonus Indicators */}
-            {(maxModeEnabled || batteryStatus?.charging) && (
-              <div className="flex justify-center gap-3 flex-wrap">
+            {(maxModeEnabled || batteryStatus?.charging || networkStatus.isAirplaneMode) && (
+              <div className="flex justify-center gap-2 flex-wrap">
+                {networkStatus.isAirplaneMode && batteryStatus?.charging && (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-accent/30 to-accent/10 border border-accent/40 flex items-center gap-2"
+                  >
+                    <Plane className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-semibold text-accent">+30% Airplane Mode</span>
+                  </motion.div>
+                )}
                 {maxModeEnabled && (
                   <div className="px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">+20% Max Mode Bonus</span>
+                    <span className="text-sm font-medium text-primary">+20% Max Mode</span>
                   </div>
                 )}
                 {batteryStatus?.charging && (
                   <div className="px-4 py-2 rounded-full bg-gradient-to-r from-secondary/20 to-secondary/10 border border-secondary/30 flex items-center gap-2">
                     <Zap className="h-4 w-4 text-secondary" />
-                    <span className="text-sm font-medium text-secondary">+50% Charging Bonus</span>
+                    <span className="text-sm font-medium text-secondary">+50% Charging</span>
                   </div>
                 )}
               </div>

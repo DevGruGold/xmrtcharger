@@ -24,6 +24,7 @@ interface UseRewardSystemOptions {
   isCharging: boolean;
   batteryLevel: number;
   maxModeEnabled: boolean;
+  isOffline?: boolean;
   onRewardEarned?: (data: RewardData) => void;
 }
 
@@ -33,6 +34,7 @@ export const useRewardSystem = ({
   isCharging,
   batteryLevel,
   maxModeEnabled,
+  isOffline = false,
   onRewardEarned,
 }: UseRewardSystemOptions) => {
   const [state, setState] = useState<RewardSystemState>({
@@ -129,6 +131,7 @@ export const useRewardSystem = ({
           isCharging,
           batteryLevel,
           maxModeEnabled,
+          isOffline,
         }
       });
 
@@ -159,7 +162,7 @@ export const useRewardSystem = ({
     } finally {
       setState(prev => ({ ...prev, isChecking: false }));
     }
-  }, [deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, state.isChecking, getIpAddress, onRewardEarned]);
+  }, [deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, isOffline, state.isChecking, getIpAddress, onRewardEarned]);
 
   // Initialize and set up polling
   useEffect(() => {
