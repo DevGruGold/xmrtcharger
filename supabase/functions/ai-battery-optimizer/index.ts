@@ -30,9 +30,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const requestData: OptimizationRequest = await req.json();
@@ -110,28 +110,50 @@ Format your response as JSON with this structure:
   "insights": string
 }`;
 
-    // Call OpenAI for intelligent analysis
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway for intelligent analysis
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_completion_tokens: 1500,
+        max_tokens: 1500,
         response_format: { type: "json_object" }
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('OpenAI API Error:', aiResponse.status, errorText);
-      throw new Error(`OpenAI API failed: ${aiResponse.status}`);
+      console.error('Lovable AI Gateway Error:', aiResponse.status, errorText);
+      
+      // Handle specific error codes
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Rate limit exceeded. Please wait a moment and try again.',
+            retryable: true 
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'AI credits exhausted. Please add credits to your Lovable workspace.',
+            retryable: false 
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`Lovable AI Gateway failed: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
