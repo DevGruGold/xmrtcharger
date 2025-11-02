@@ -90,30 +90,16 @@ export const AIOptimizationInsights = ({
   }
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-xl">
-      {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-      <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" />
-      
-      <div className="relative p-6 space-y-6">
+    <Card className="border border-border bg-card corporate-shadow-lg">
+      <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <motion.div 
-              className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30"
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(59, 130, 246, 0.3)',
-                  '0 0 30px rgba(59, 130, 246, 0.5)',
-                  '0 0 20px rgba(59, 130, 246, 0.3)',
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
               <Brain className="h-6 w-6 text-primary" />
-            </motion.div>
+            </div>
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold text-foreground">
                 AI Battery Optimizer
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -125,20 +111,8 @@ export const AIOptimizationInsights = ({
           <Button
             onClick={handleAnalyze}
             disabled={isAnalyzing || !batteryStatus}
-            className="relative overflow-hidden group"
             size="lg"
           >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-0 group-hover:opacity-20 transition-opacity"
-              animate={{
-                x: ['0%', '100%'],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'linear'
-              }}
-            />
             {isAnalyzing ? (
               <>
                 <Sparkles className="mr-2 h-4 w-4 animate-spin" />
@@ -155,32 +129,24 @@ export const AIOptimizationInsights = ({
 
         {/* Error State */}
         {error && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2"
-          >
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive text-destructive text-sm flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             <span>{error}</span>
-          </motion.div>
+          </div>
         )}
 
         {/* Optimization Results */}
         {optimization && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             {/* Health Score Card */}
-            <Card className="p-6 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 border-primary/30 glow-primary">
+            <Card className="p-6 bg-muted border border-border">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20">
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <Shield className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Battery Health Score</h3>
+                    <h3 className="font-semibold text-lg text-foreground">Battery Health Score</h3>
                     <p className="text-xs text-muted-foreground">AI-powered analysis</p>
                   </div>
                 </div>
@@ -196,28 +162,25 @@ export const AIOptimizationInsights = ({
 
             {/* Immediate Actions */}
             {optimization.immediateActions && optimization.immediateActions.length > 0 && (
-              <Card className="p-5 bg-gradient-to-br from-accent/10 to-accent/5 border-accent/30">
+              <Card className="p-5 bg-destructive/5 border border-destructive/20">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-accent/20">
-                    <AlertTriangle className="h-5 w-5 text-accent" />
+                  <div className="p-2 rounded-lg bg-destructive/10">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
                   </div>
-                  <h3 className="font-semibold text-base">Immediate Actions Required</h3>
+                  <h3 className="font-semibold text-base text-foreground">Immediate Actions Required</h3>
                 </div>
                 <ul className="space-y-3">
                   {optimization.immediateActions.map((action: any, idx: number) => (
-                    <motion.li 
+                    <li 
                       key={idx}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="text-sm flex items-start gap-3 p-3 rounded-lg bg-background/50 border border-accent/20"
+                      className="text-sm flex items-start gap-3 p-3 rounded-lg bg-background border border-border"
                     >
-                      <Zap className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                      <Zap className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="font-medium">{action.action || action}</p>
+                        <p className="font-medium text-foreground">{action.action || action}</p>
                         {action.reason && <p className="text-xs text-muted-foreground mt-1">{action.reason}</p>}
                       </div>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </Card>
@@ -225,28 +188,25 @@ export const AIOptimizationInsights = ({
 
             {/* Short-term Optimizations */}
             {optimization.shortTermOptimizations && optimization.shortTermOptimizations.length > 0 && (
-              <Card className="p-5 bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/30">
+              <Card className="p-5 bg-primary/5 border border-primary/20">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-secondary/20">
-                    <Target className="h-5 w-5 text-secondary" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Target className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-base">Quick Wins</h3>
+                  <h3 className="font-semibold text-base text-foreground">Quick Wins</h3>
                 </div>
                 <ul className="space-y-3">
                   {optimization.shortTermOptimizations.map((opt: any, idx: number) => (
-                    <motion.li 
+                    <li 
                       key={idx}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
                       className="text-sm flex items-start gap-3"
                     >
-                      <CheckCircle className="h-4 w-4 text-secondary mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="font-medium">{opt.action || opt}</p>
+                        <p className="font-medium text-foreground">{opt.action || opt}</p>
                         {opt.timeframe && <p className="text-xs text-muted-foreground mt-1">⏱️ {opt.timeframe}</p>}
                       </div>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </Card>
@@ -283,21 +243,17 @@ export const AIOptimizationInsights = ({
 
             {/* AI Insights */}
             {optimization.insights && (
-              <Card className="p-5 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-primary/20">
+              <Card className="p-5 bg-muted border border-border">
                 <div className="flex items-center gap-3 mb-3">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                    className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20"
-                  >
+                  <div className="p-2 rounded-lg bg-primary/10">
                     <Brain className="h-5 w-5 text-primary" />
-                  </motion.div>
-                  <h3 className="font-semibold text-base">AI Analysis Summary</h3>
+                  </div>
+                  <h3 className="font-semibold text-base text-foreground">AI Analysis Summary</h3>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">{optimization.insights}</p>
               </Card>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Empty State */}

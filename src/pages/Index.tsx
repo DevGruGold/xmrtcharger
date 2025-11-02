@@ -25,29 +25,26 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated background effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Subtle background pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03]" style={{
+        backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)',
+        backgroundSize: '40px 40px'
+      }} />
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="border-b border-border/50 backdrop-blur-xl bg-background/30">
-          <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-6">
-            <div className="text-center space-y-3">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent text-glow-primary">
-                  XMRT Charger
-                </span>
+        <header className="border-b border-border bg-card corporate-shadow">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                XMRT Charger
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground/90">
-                by <span className="text-foreground font-medium">Grounded Batteries, LLC</span>
+              <p className="text-sm text-muted-foreground">
+                by <span className="text-foreground font-semibold">Grounded Batteries, LLC</span>
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground/70 tracking-wide uppercase">
-                Professional Grade Charging Solutions
+              <p className="text-xs text-muted-foreground">
+                Professional Battery Management Solutions
               </p>
             </div>
           </div>
