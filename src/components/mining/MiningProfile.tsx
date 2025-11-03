@@ -13,6 +13,22 @@ interface MiningProfileProps {
 export const MiningProfile = ({ deviceId, sessionId }: MiningProfileProps) => {
   const { miningStats, isLoading, refresh } = useMiningStatus({ deviceId, sessionId });
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const handleConnectSuccess = () => {
+    setIsConnecting(true);
+    refresh();
+    
+    // Reset connecting state after 30 seconds if stats don't load
+    setTimeout(() => {
+      setIsConnecting(false);
+    }, 30000);
+  };
+
+  // Reset connecting state once mining becomes active
+  if (isConnecting && miningStats.isActive) {
+    setIsConnecting(false);
+  }
 
   if (isLoading) {
     return (
@@ -22,6 +38,36 @@ export const MiningProfile = ({ deviceId, sessionId }: MiningProfileProps) => {
           <div className="h-8 bg-muted rounded"></div>
         </div>
       </Card>
+    );
+  }
+
+  // Show connecting state while waiting for miner to activate
+  if (isConnecting && !miningStats.isActive) {
+    return (
+      <>
+        <Card className="p-6 border-[hsl(var(--xmr-orange))]/30">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Bitcoin className="h-5 w-5 text-[hsl(var(--xmr-orange))] animate-pulse" />
+              <h3 className="text-lg font-semibold text-foreground">Connecting to Miner...</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Fetching your mining stats. This may take a few moments.
+            </p>
+            <div className="flex gap-1 justify-center py-4">
+              <div className="w-2 h-2 rounded-full bg-[hsl(var(--xmr-orange))] animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 rounded-full bg-[hsl(var(--xmr-orange))] animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 rounded-full bg-[hsl(var(--xmr-orange))] animate-bounce" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
+        </Card>
+        <ConnectMinerModal
+          open={showConnectModal}
+          onOpenChange={setShowConnectModal}
+          deviceId={deviceId}
+          onSuccess={handleConnectSuccess}
+        />
+      </>
     );
   }
 
@@ -51,7 +97,7 @@ export const MiningProfile = ({ deviceId, sessionId }: MiningProfileProps) => {
           open={showConnectModal}
           onOpenChange={setShowConnectModal}
           deviceId={deviceId}
-          onSuccess={refresh}
+          onSuccess={handleConnectSuccess}
         />
       </>
     );
@@ -134,7 +180,7 @@ export const MiningProfile = ({ deviceId, sessionId }: MiningProfileProps) => {
         open={showConnectModal}
         onOpenChange={setShowConnectModal}
         deviceId={deviceId}
-        onSuccess={refresh}
+        onSuccess={handleConnectSuccess}
       />
     </>
   );

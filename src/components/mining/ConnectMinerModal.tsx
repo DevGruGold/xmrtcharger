@@ -111,11 +111,19 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
         description: `Hashrate: ${(proxyData.stats.hashrate / 1000).toFixed(2)} KH/s | Shares: ${proxyData.stats.shares}`,
       });
       
+      // Trigger multiple refresh attempts to fetch the mining stats quickly
+      onSuccess?.(); // First immediate refresh
+      setTimeout(() => onSuccess?.(), 500);
+      setTimeout(() => onSuccess?.(), 1000);
+      setTimeout(() => onSuccess?.(), 1500);
+      setTimeout(() => onSuccess?.(), 2000);
+      setTimeout(() => onSuccess?.(), 2500);
+      
+      // Close modal after 3 seconds to give stats time to load
       setTimeout(() => {
-        onSuccess?.();
         onOpenChange(false);
         setConnectionSuccess(false);
-      }, 2000);
+      }, 3000);
 
     } catch (error: any) {
       console.error('Error connecting miner:', error);

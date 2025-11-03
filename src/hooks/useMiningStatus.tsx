@@ -180,8 +180,19 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
 
     if (!enabled) return;
 
-    // Poll every 10 seconds for updates
-    const interval = setInterval(fetchMiningStats, 10000);
+    // Aggressive polling for first 30 seconds (every 2s), then slow down to 10s
+    let pollCount = 0;
+    const aggressiveInterval = setInterval(() => {
+      pollCount++;
+      fetchMiningStats();
+      
+      // After 15 polls (30 seconds), switch to slower polling
+      if (pollCount >= 15) {
+        clearInterval(aggressiveInterval);
+        const normalInterval = setInterval(fetchMiningStats, 10000);
+        return () => clearInterval(normalInterval);
+      }
+    }, 2000);
 
     // Subscribe to real-time mining updates
     const channel = supabase
@@ -200,7 +211,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
       .subscribe();
 
     return () => {
-      clearInterval(interval);
+      clearInterval(aggressiveInterval);
       supabase.removeChannel(channel);
     };
   }, [deviceId, sessionId, enabled]);
