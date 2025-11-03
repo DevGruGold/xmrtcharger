@@ -1608,6 +1608,7 @@ export type Database = {
           created_at: string
           device_id: string
           id: string
+          is_active: boolean | null
           is_primary_device: boolean | null
           metadata: Json | null
           mining_while_charging: boolean | null
@@ -1622,6 +1623,7 @@ export type Database = {
           created_at?: string
           device_id: string
           id?: string
+          is_active?: boolean | null
           is_primary_device?: boolean | null
           metadata?: Json | null
           mining_while_charging?: boolean | null
@@ -1636,6 +1638,7 @@ export type Database = {
           created_at?: string
           device_id?: string
           id?: string
+          is_active?: boolean | null
           is_primary_device?: boolean | null
           metadata?: Json | null
           mining_while_charging?: boolean | null
@@ -2747,6 +2750,7 @@ export type Database = {
           metric: Json
           miner_id: string
           status: string
+          update_source: string | null
         }
         Insert: {
           created_at?: string
@@ -2754,6 +2758,7 @@ export type Database = {
           metric: Json
           miner_id: string
           status: string
+          update_source?: string | null
         }
         Update: {
           created_at?: string
@@ -2761,6 +2766,7 @@ export type Database = {
           metric?: Json
           miner_id?: string
           status?: string
+          update_source?: string | null
         }
         Relationships: []
       }

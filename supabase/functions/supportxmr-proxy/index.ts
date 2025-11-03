@@ -96,10 +96,14 @@ serve(async (req) => {
       });
 
     if (updateError) {
-      console.warn('Mining update insert error:', updateError);
+      console.error('❌ Mining update insert error:', updateError);
+    } else {
+      console.log('✅ Mining update inserted for miner:', worker.id);
     }
 
     if (deviceId && action === 'connect') {
+      console.log(`🔗 Attempting to associate device ${deviceId} with miner ${worker.id}`);
+      
       const { error: assocError } = await supabaseClient
         .from('device_miner_associations')
         .upsert({
@@ -113,9 +117,10 @@ serve(async (req) => {
         });
 
       if (assocError) {
-        console.warn('Association error:', assocError);
+        console.error('❌ Association error:', assocError);
+        console.error('Association error details:', JSON.stringify(assocError, null, 2));
       } else {
-        console.log(`🔗 Associated device ${deviceId} with miner ${worker.id}`);
+        console.log(`✅ Successfully associated device ${deviceId} with miner ${worker.id}`);
       }
     }
 
