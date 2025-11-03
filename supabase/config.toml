@@ -1,5 +1,8 @@
 project_id = "vawouugtzwmejxqkeqqj"
 
+[functions.supportxmr-proxy]
+verify_jwt = false
+
 [functions.record-battery-data]
 verify_jwt = false
 

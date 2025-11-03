@@ -37,7 +37,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
     }
 
     try {
-      // Get device-miner association (using any type since tables don't exist in schema yet)
+      // Get device-miner association
       const { data: associationData, error: assocError } = await supabase
         .from('device_miner_associations' as any)
         .select(`
@@ -45,6 +45,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
           xmr_workers (
             id,
             worker_id,
+            wallet_address,
             is_active,
             metadata
           )
@@ -68,7 +69,34 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
         return;
       }
 
-      // Get recent mining updates (last 10 minutes)
+      // Try to fetch fresh stats from SupportXMR via proxy
+      if (association.xmr_workers.wallet_address) {
+        try {
+          const { data: proxyData } = await supabase.functions.invoke('supportxmr-proxy', {
+            body: {
+              wallet_address: association.xmr_workers.wallet_address,
+              action: 'fetch_stats',
+            }
+          });
+
+          if (proxyData?.success) {
+            setMiningStats({
+              xmrMined: proxyData.stats.xmr_earned,
+              xmrtFromMining: proxyData.stats.xmrt_bonus,
+              hashrate: proxyData.stats.hashrate,
+              shares: proxyData.stats.shares,
+              workerId: proxyData.worker.worker_id,
+              isActive: proxyData.worker.is_active,
+            });
+            setIsLoading(false);
+            return;
+          }
+        } catch (proxyError) {
+          console.warn('SupportXMR proxy failed, falling back to database:', proxyError);
+        }
+      }
+
+      // Fallback to database records
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
       const { data: updatesData } = await supabase
         .from('mining_updates' as any)
@@ -80,7 +108,6 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
       const miningUpdates: MiningData[] = updatesData || [];
 
       if (miningUpdates && miningUpdates.length > 0) {
-        // Calculate totals
         const latestUpdate = miningUpdates[0];
         const totalXmr = miningUpdates.reduce((sum, update) => {
           return sum + (update.metric?.xmr_earned || 0);
@@ -88,7 +115,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
 
         setMiningStats({
           xmrMined: totalXmr,
-          xmrtFromMining: totalXmr * 1000, // 1 XMR = 1000 XMRT
+          xmrtFromMining: totalXmr * 1000,
           hashrate: latestUpdate.metric?.hashrate || 0,
           shares: latestUpdate.metric?.shares_found || 0,
           workerId: association.xmr_workers.worker_id,
