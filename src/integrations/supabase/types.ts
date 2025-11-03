@@ -1651,21 +1651,21 @@ export type Database = {
           {
             foreignKeyName: "device_miner_associations_device_id_fkey"
             columns: ["device_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "active_devices_view"
             referencedColumns: ["device_id"]
           },
           {
             foreignKeyName: "device_miner_associations_device_id_fkey"
             columns: ["device_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "device_connection_status"
             referencedColumns: ["device_id"]
           },
           {
             foreignKeyName: "device_miner_associations_device_id_fkey"
             columns: ["device_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
