@@ -190,41 +190,64 @@ serve(async (req) => {
     if (minerAssociation && minerAssociation.xmr_workers) {
       console.log('⛏️ Device has active miner association:', minerAssociation.xmr_workers.worker_id);
 
-      // Get recent XMR earnings from mining_updates (last 5 minutes)
-      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
-      const { data: recentMining } = await supabaseClient
-        .from('mining_updates')
-        .select('metric')
-        .eq('miner_id', minerAssociation.xmr_workers.id)
-        .gte('created_at', fiveMinutesAgo)
-        .order('created_at', { ascending: false });
+      // CRITICAL: Verify miner is on DAO pool wallet
+      const daoPoolWallet = Deno.env.get('MINER_WALLET_ADDRESS') || '';
+      const isDAOPoolMiner = minerAssociation.wallet_address === daoPoolWallet;
 
-      if (recentMining && recentMining.length > 0) {
-        // Sum XMR earned in recent updates
-        const xmrInSession = recentMining.reduce((sum, update) => {
-          return sum + (update.metric?.xmr_earned || 0);
-        }, 0);
+      if (!isDAOPoolMiner) {
+        console.warn(`⚠️ Miner on personal wallet ${minerAssociation.wallet_address.substring(0, 8)}... - no mining bonus`);
+      } else {
+        // Get last shares counted for this device
+        const lastSharesCounted = minerAssociation.metadata?.last_shares_counted || 0;
+        const currentTotalShares = minerAssociation.xmr_workers.metadata?.total_shares || 0;
+        
+        // Calculate NEW shares since last reward
+        const newShares = Math.max(0, currentTotalShares - lastSharesCounted);
 
-        if (xmrInSession > 0) {
-          // Convert XMR to bonus XMRT
-          const xmrBonusXMRT = xmrInSession * XMR_XMRT_CONVERSION.BASE_RATE;
+        console.log(`📊 Share tracking: ${lastSharesCounted} → ${currentTotalShares} (delta: +${newShares})`);
+
+        if (newShares > 0) {
+          // Award XMRT based on share contribution
+          // Conversion: ~1 XMRT per share (configurable)
+          const XMRT_PER_SHARE = 1.0;
+          const sharesBonusXMRT = newShares * XMRT_PER_SHARE;
           
-          // Apply mining multiplier
+          // Apply mining multiplier to base charging reward
           multiplier *= XMR_XMRT_CONVERSION.ACTIVE_MINING_BONUS;
-          bonuses.push(`Active XMR Mining (+50% + ${xmrBonusXMRT.toFixed(4)} XMRT from ${xmrInSession.toFixed(8)} XMR)`);
+          bonuses.push(`Active Mining (+50% + ${sharesBonusXMRT.toFixed(2)} XMRT from ${newShares} shares)`);
           
-          // Add XMR bonus to final amount
-          finalAmount += xmrBonusXMRT;
+          // Add mining bonus to final amount
+          finalAmount += sharesBonusXMRT;
 
-          // Track XMR contribution for transaction metadata
+          // Update last_shares_counted in association
+          await supabaseClient
+            .from('device_miner_associations')
+            .update({
+              metadata: {
+                ...minerAssociation.metadata,
+                last_shares_counted: currentTotalShares,
+                total_shares_rewarded: (minerAssociation.metadata?.total_shares_rewarded || 0) + newShares,
+                last_reward_at: now.toISOString(),
+              }
+            })
+            .eq('device_id', deviceId);
+
+          // Track contribution for transaction metadata
           xmrContribution = {
-            xmr_mined: xmrInSession,
-            xmrt_from_xmr: xmrBonusXMRT,
-            conversion_rate: XMR_XMRT_CONVERSION.BASE_RATE,
+            shares_contributed: newShares,
+            xmrt_from_shares: sharesBonusXMRT,
+            total_shares: currentTotalShares,
             worker_id: minerAssociation.xmr_workers.worker_id,
+            wallet_address: minerAssociation.wallet_address,
+            mining_pool_type: 'dao_pool',
           };
 
-          console.log(`✅ XMR Mining Bonus: ${xmrInSession.toFixed(8)} XMR = ${xmrBonusXMRT.toFixed(4)} XMRT`);
+          console.log(`✅ Mining Bonus: ${newShares} new shares = ${sharesBonusXMRT.toFixed(2)} XMRT`);
+        } else {
+          console.log('ℹ️ No new shares found since last reward');
+          // Still apply mining multiplier to charging reward
+          multiplier *= XMR_XMRT_CONVERSION.ACTIVE_MINING_BONUS;
+          bonuses.push('Active Mining (+50%)');
         }
       }
     }

@@ -21,13 +21,15 @@ serve(async (req) => {
 
     const { wallet_address, deviceId, action = 'fetch_stats' } = await req.json();
 
+    // Get DAO pool wallet address from environment
+    const DAO_POOL_WALLET = Deno.env.get('MINER_WALLET_ADDRESS') || '';
+    
     // Handle get_default_wallet action
     if (action === 'get_default_wallet') {
-      const defaultWallet = Deno.env.get('MINER_WALLET_ADDRESS') || '';
       return new Response(
         JSON.stringify({
           success: true,
-          wallet_address: defaultWallet,
+          wallet_address: DAO_POOL_WALLET,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -38,6 +40,13 @@ serve(async (req) => {
         JSON.stringify({ error: 'Valid Monero wallet address required (starts with 4)' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // CRITICAL: Validate that wallet matches DAO pool wallet for XMRT rewards
+    const isDAOPoolWallet = wallet_address === DAO_POOL_WALLET;
+    if (!isDAOPoolWallet) {
+      console.warn(`⚠️ Non-DAO wallet detected: ${wallet_address.substring(0, 8)}... (won't earn XMRT)`);
+      // Allow connection but mark as personal mining (no XMRT rewards)
     }
 
     console.log(`📡 Fetching SupportXMR stats for: ${wallet_address.substring(0, 8)}...`);
@@ -76,7 +85,18 @@ serve(async (req) => {
     }
 
     const shares = stats.validShares || stats.shares || 0;
-    const xmr_earned = (stats.amtDue || stats.balance || 0) / 1e12;
+    
+    // Get previous share count to calculate delta
+    const { data: existingWorker } = await supabaseClient
+      .from('xmr_workers')
+      .select('metadata')
+      .eq('wallet_address', wallet_address)
+      .single();
+
+    const previousShares = existingWorker?.metadata?.total_shares || 0;
+    const newSharesFound = Math.max(0, shares - previousShares);
+
+    console.log(`📊 Shares update: ${previousShares} → ${shares} (delta: +${newSharesFound})`);
 
     const { data: worker, error: workerError } = await supabaseClient
       .from('xmr_workers')
@@ -89,6 +109,7 @@ serve(async (req) => {
           total_shares: shares,
           workers_count: workers.length,
           last_fetch: new Date().toISOString(),
+          mining_pool_type: isDAOPoolWallet ? 'dao_pool' : 'personal',
         }
       }, {
         onConflict: 'wallet_address',
@@ -102,8 +123,9 @@ serve(async (req) => {
       throw workerError;
     }
 
-    console.log(`✅ Worker upserted: ${worker.worker_id}`);
+    console.log(`✅ Worker upserted: ${worker.worker_id} (${isDAOPoolWallet ? 'DAO Pool' : 'Personal Mining'})`);
 
+    // CRITICAL FIX: Store only INCREMENTAL shares, not cumulative balance
     const { error: updateError } = await supabaseClient
       .from('mining_updates')
       .insert({
@@ -111,9 +133,10 @@ serve(async (req) => {
         status: 'active',
         metric: {
           hashrate,
-          shares_found: shares,
-          xmr_earned,
+          shares_found: newSharesFound, // NEW shares only
+          total_shares: shares, // Track cumulative for reference
           workers_active: workers.length,
+          is_dao_pool: isDAOPoolWallet,
         },
         update_source: 'supportxmr_api',
       });
@@ -121,7 +144,7 @@ serve(async (req) => {
     if (updateError) {
       console.error('❌ Mining update insert error:', updateError);
     } else {
-      console.log('✅ Mining update inserted for miner:', worker.id);
+      console.log(`✅ Mining update inserted: +${newSharesFound} new shares`);
     }
 
     if (deviceId && action === 'connect') {
@@ -136,6 +159,11 @@ serve(async (req) => {
           mining_while_charging: true,
           is_active: true,
           associated_at: new Date().toISOString(),
+          metadata: {
+            last_shares_counted: 0, // Initialize share tracking
+            total_shares_rewarded: 0,
+            mining_pool_type: isDAOPoolWallet ? 'dao_pool' : 'personal',
+          }
         }, {
           onConflict: 'device_id'
         });
@@ -145,6 +173,9 @@ serve(async (req) => {
         console.error('Association error details:', JSON.stringify(assocError, null, 2));
       } else {
         console.log(`✅ Successfully associated device ${deviceId} with miner ${worker.id}`);
+        if (!isDAOPoolWallet) {
+          console.warn(`⚠️ Device mining to personal wallet - no XMRT rewards`);
+        }
       }
     }
 
@@ -160,9 +191,10 @@ serve(async (req) => {
         stats: {
           hashrate,
           shares,
-          xmr_earned,
-          xmrt_bonus: xmr_earned * 1000,
+          new_shares_found: newSharesFound,
           workers_count: workers.length,
+          is_dao_pool: isDAOPoolWallet,
+          xmrt_eligible: isDAOPoolWallet,
         },
         last_updated: new Date().toISOString(),
       }),
