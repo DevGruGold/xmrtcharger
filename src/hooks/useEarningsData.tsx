@@ -64,17 +64,27 @@ export const useEarningsData = (dateRange: 'all' | '7d' | '30d' = 'all') => {
       setIsLoading(true);
       try {
         // Get user profile ID from IP
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('id')
           .eq('ip_address', ipAddress)
-          .single();
+          .maybeSingle();
 
-        if (!profile) {
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
           setTransactions([]);
           setIsLoading(false);
           return;
         }
+
+        if (!profile) {
+          console.log('No profile found for IP:', ipAddress);
+          setTransactions([]);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('Fetching transactions for profile:', profile.id);
 
         // Calculate date filter
         let dateFilter = new Date(0); // Beginning of time
@@ -92,8 +102,12 @@ export const useEarningsData = (dateRange: 'all' | '7d' | '30d' = 'all') => {
           .gte('created_at', dateFilter.toISOString())
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching transactions:', error);
+          throw error;
+        }
 
+        console.log('Fetched transactions:', data?.length || 0);
         setTransactions((data || []) as EarningsTransaction[]);
       } catch (error) {
         console.error('Error fetching earnings data:', error);
