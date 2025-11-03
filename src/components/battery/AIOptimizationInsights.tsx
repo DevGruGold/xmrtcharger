@@ -91,18 +91,18 @@ export const AIOptimizationInsights = ({
 
   return (
     <Card className="border border-border bg-card corporate-shadow-lg">
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <Brain className="h-6 w-6 text-primary" />
+            <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                 AI Battery Optimizer
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Intelligent analysis & personalized recommendations
               </p>
             </div>
@@ -111,17 +111,20 @@ export const AIOptimizationInsights = ({
           <Button
             onClick={handleAnalyze}
             disabled={isAnalyzing || !batteryStatus}
-            size="lg"
+            size="default"
+            className="w-full sm:w-auto px-4 sm:px-6"
           >
             {isAnalyzing ? (
               <>
-                <Sparkles className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing Battery...
+                <Sparkles className="h-4 w-4 animate-spin" />
+                <span className="hidden sm:inline">Analyzing Battery...</span>
+                <span className="sm:hidden">Analyzing...</span>
               </>
             ) : (
               <>
-                <Brain className="mr-2 h-4 w-4" />
-                Analyze Battery Health
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">Analyze Battery Health</span>
+                <span className="sm:hidden">Analyze</span>
               </>
             )}
           </Button>
@@ -259,11 +262,16 @@ export const AIOptimizationInsights = ({
         {/* Empty State */}
         {!optimization && !isAnalyzing && !error && (
           <div className="text-center py-8">
-            <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-muted-foreground mb-4">
+            <Brain className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 px-4">
               Get personalized battery optimization insights powered by AI
             </p>
-            <Button onClick={handleAnalyze} variant="outline">
+            <Button 
+              onClick={handleAnalyze} 
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              <Brain className="h-4 w-4" />
               Run AI Analysis
             </Button>
           </div>
