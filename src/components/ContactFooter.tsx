@@ -15,8 +15,8 @@ export function ContactFooter() {
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-background border-t p-4">
-      <div className="max-w-md mx-auto flex justify-center gap-4">
+    <footer className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 sm:p-4 z-50">
+      <div className="max-w-md mx-auto flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
         <Button onClick={handleWhatsApp} variant="outline" className="flex-1">
           <MessageCircle className="mr-2 h-4 w-4" />
           WhatsApp Support

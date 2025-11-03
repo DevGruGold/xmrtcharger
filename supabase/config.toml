@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.associate-device-miner]
 verify_jwt = false
+
+[functions.update-payout-wallet]
+verify_jwt = false

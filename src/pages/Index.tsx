@@ -50,7 +50,7 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-24 sm:pb-20 space-y-8">
           {/* Hero Section with Reward System */}
           <HeroSection 
             batteryStatus={batteryStatus}
@@ -98,7 +98,7 @@ const Index = () => {
           {/* Bottom Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
             <ProductXMRT />
-            <Web3Donation />
+            <Web3Donation deviceId={connection.deviceId} />
           </div>
         </div>
 

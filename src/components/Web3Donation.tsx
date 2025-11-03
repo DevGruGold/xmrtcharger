@@ -4,19 +4,27 @@ import { parseEther } from 'viem';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Battery, Wallet, Zap } from 'lucide-react';
+import { Battery, Wallet, Zap, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getChargingSpeedAnimation, getChargingSpeedColor } from './battery/BatteryAnimation';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 const DONATION_ADDRESS = "0xda6b8FbB45616F6F3b96C033De705b2b8cb8Cb08";
 
-export const Web3Donation = () => {
+interface Web3DonationProps {
+  deviceId?: string | null;
+}
+
+export const Web3Donation = ({ deviceId }: Web3DonationProps = {}) => {
   const { open } = useWeb3Modal();
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: balance } = useBalance({
     address,
   });
+  const [isPayoutWallet, setIsPayoutWallet] = useState(false);
+  const [isSavingWallet, setIsSavingWallet] = useState(false);
 
   const { config } = usePrepareSendTransaction({
     to: DONATION_ADDRESS,
@@ -24,6 +32,59 @@ export const Web3Donation = () => {
   });
 
   const { sendTransaction } = useSendTransaction(config);
+
+  // Get user's IP address
+  const getIpAddress = async (): Promise<string> => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      console.error('Failed to get IP address:', error);
+      return '0.0.0.0';
+    }
+  };
+
+  // Auto-save wallet as payout address when connected
+  useEffect(() => {
+    if (address && isConnected && !isPayoutWallet && !isSavingWallet) {
+      savePayoutWallet(address);
+    }
+  }, [address, isConnected]);
+
+  const savePayoutWallet = async (walletAddress: string) => {
+    setIsSavingWallet(true);
+    try {
+      const ipAddress = await getIpAddress();
+      
+      console.log('Saving payout wallet:', { deviceId, ipAddress, walletAddress });
+
+      const { data, error } = await supabase.functions.invoke('update-payout-wallet', {
+        body: {
+          deviceId,
+          ipAddress,
+          walletAddress,
+          walletType: 'ethereum'
+        }
+      });
+
+      if (error) throw error;
+      
+      setIsPayoutWallet(true);
+      toast.success("✓ Wallet saved as payout address for XMRT/XMR earnings", {
+        description: "Your earnings will be sent to this wallet"
+      });
+      
+      console.log('Payout wallet saved:', data);
+    } catch (error) {
+      console.error('Failed to save payout wallet:', error);
+      toast.error("Could not save payout wallet", {
+        description: "Please try reconnecting your wallet"
+      });
+    } finally {
+      setIsSavingWallet(false);
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -54,7 +115,7 @@ export const Web3Donation = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto mt-8 backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl">
+    <Card className="w-full max-w-md mx-auto mt-8 mb-8 sm:mb-12 backdrop-blur-sm bg-white/90 dark:bg-gray-900/90 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl">
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-center space-x-2">
           <Battery className={cn(
@@ -83,6 +144,22 @@ export const Web3Donation = () => {
                   <span className="text-muted-foreground">Balance:</span>
                   <span className="font-mono">{parseFloat(balance?.formatted).toFixed(4)} {balance?.symbol}</span>
                 </div>
+              )}
+              
+              {/* Payout Wallet Indicator */}
+              {isPayoutWallet && (
+                <>
+                  <div className="flex items-center justify-between text-sm border-t border-border/50 pt-2 mt-2">
+                    <span className="text-muted-foreground">Payout Wallet:</span>
+                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    XMRT & XMR earnings will be sent to this address
+                  </p>
+                </>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">
