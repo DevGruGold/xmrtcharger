@@ -11,8 +11,12 @@ import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { Button } from "@/components/ui/button";
+import { History } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [maxModeEnabled, setMaxModeEnabled] = useState(false);
   const connection = useDeviceConnection();
   const { batteryStatus, deviceInfo } = useBattery({
@@ -55,8 +59,20 @@ const Index = () => {
         </header>
 
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-24 sm:pb-20 space-y-8">
+          {/* View Earnings Button */}
+          <div className="flex justify-center">
+            <Button
+              onClick={() => navigate('/earnings')}
+              variant="outline"
+              className="gap-2"
+            >
+              <History className="h-4 w-4" />
+              View Earnings History
+            </Button>
+          </div>
+
           {/* Hero Section with Reward System */}
-          <HeroSection 
+          <HeroSection
             batteryStatus={batteryStatus}
             deviceId={connection.deviceId}
             sessionId={connection.sessionId}

@@ -10,6 +10,7 @@ import { EthereumClient, w3mConnectors } from '@web3modal/ethereum';
 import { useEffect } from 'react';
 import { offlineStorage } from '@/utils/offlineStorage';
 import Index from "./pages/Index";
+import Earnings from "./pages/Earnings";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/earnings" element={<Earnings />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
