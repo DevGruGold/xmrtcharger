@@ -23,10 +23,16 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
   // Fetch default wallet address on mount
   const fetchDefaultWallet = async () => {
     try {
-      const { data } = await supabase.functions.invoke('supportxmr-proxy', {
-        body: { action: 'get_default_wallet' }
+      const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd291dWd0endtZWp4cWtlcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Njk3MTIsImV4cCI6MjA2ODM0NTcxMn0.qtZk3zk5RMqzlPNhxCkTM6fyVQX5ULGt7nna_XOUr00',
+        },
+        body: JSON.stringify({ action: 'get_default_wallet' })
       });
       
+      const data = await response.json();
       if (data?.success && data.wallet_address) {
         setWalletAddress(data.wallet_address);
       }
@@ -58,15 +64,20 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
     setIsConnecting(true);
 
     try {
-      const { data: proxyData, error: proxyError } = await supabase.functions.invoke('supportxmr-proxy', {
-        body: {
+      const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd291dWd0endtZWp4cWtlcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Njk3MTIsImV4cCI6MjA2ODM0NTcxMn0.qtZk3zk5RMqzlPNhxCkTM6fyVQX5ULGt7nna_XOUr00',
+        },
+        body: JSON.stringify({
           wallet_address: walletAddress,
           deviceId,
           action: 'connect',
-        }
+        })
       });
 
-      if (proxyError) throw proxyError;
+      const proxyData = await response.json();
 
       if (!proxyData?.success) {
         throw new Error(proxyData?.error || 'Failed to fetch mining stats');

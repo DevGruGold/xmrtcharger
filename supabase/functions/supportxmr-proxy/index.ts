@@ -61,7 +61,6 @@ serve(async (req) => {
       .upsert({
         wallet_address,
         worker_id: workers[0] || wallet_address.substring(0, 12),
-        pool_address: 'pool.supportxmr.com',
         is_active: hashrate > 0,
         metadata: {
           last_hashrate: hashrate,
