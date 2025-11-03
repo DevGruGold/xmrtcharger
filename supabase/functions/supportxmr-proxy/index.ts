@@ -86,6 +86,7 @@ serve(async (req) => {
       .from('mining_updates')
       .insert({
         miner_id: worker.id,
+        status: 'active',
         metric: {
           hashrate,
           shares_found: shares,
@@ -108,12 +109,13 @@ serve(async (req) => {
         .from('device_miner_associations')
         .upsert({
           device_id: deviceId,
-          miner_id: worker.id,
+          worker_id: worker.worker_id,
+          wallet_address: wallet_address,
           mining_while_charging: true,
           is_active: true,
           associated_at: new Date().toISOString(),
         }, {
-          onConflict: 'device_id,miner_id'
+          onConflict: 'device_id'
         });
 
       if (assocError) {
