@@ -46,6 +46,8 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
             id,
             worker_id,
             wallet_address,
+            xmrig_api_url,
+            connection_type,
             is_active,
             metadata
           )
@@ -69,7 +71,35 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
         return;
       }
 
-      // Try to fetch fresh stats from SupportXMR via proxy
+      // PRIORITY 1: Try XMRig direct API if configured
+      if (association.xmr_workers.xmrig_api_url) {
+        try {
+          const response = await supabase.functions.invoke('xmrig-direct-proxy', {
+            body: {
+              xmrig_api_url: association.xmr_workers.xmrig_api_url,
+              device_id: deviceId,
+              action: 'fetch_stats',
+            }
+          });
+
+          if (response.data?.success) {
+            setMiningStats({
+              xmrMined: response.data.stats.xmr_earned || 0,
+              xmrtFromMining: response.data.stats.xmrt_bonus || 0,
+              hashrate: response.data.stats.hashrate,
+              shares: response.data.stats.shares,
+              workerId: response.data.worker.worker_id,
+              isActive: response.data.worker.is_active,
+            });
+            setIsLoading(false);
+            return;
+          }
+        } catch (xmrigError) {
+          console.warn('XMRig direct API failed, falling back to SupportXMR:', xmrigError);
+        }
+      }
+
+      // PRIORITY 2: Try SupportXMR API if wallet address is available
       if (association.xmr_workers.wallet_address) {
         try {
           const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {

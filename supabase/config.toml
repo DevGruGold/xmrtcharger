@@ -1,5 +1,8 @@
 project_id = "vawouugtzwmejxqkeqqj"
 
+[functions.xmrig-direct-proxy]
+verify_jwt = false
+
 [functions.supportxmr-proxy]
 verify_jwt = false
 

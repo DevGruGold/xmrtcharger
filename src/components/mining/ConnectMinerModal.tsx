@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Bitcoin, CheckCircle2 } from 'lucide-react';
+import { Loader2, Bitcoin, CheckCircle2, Cpu } from 'lucide-react';
 
 interface ConnectMinerModalProps {
   open: boolean;
@@ -16,6 +17,8 @@ interface ConnectMinerModalProps {
 
 export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: ConnectMinerModalProps) => {
   const [walletAddress, setWalletAddress] = useState('');
+  const [xmrigApiUrl, setXmrigApiUrl] = useState('');
+  const [connectionType, setConnectionType] = useState<'wallet' | 'xmrig'>('wallet');
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionSuccess, setConnectionSuccess] = useState(false);
   const [isLoadingDefault, setIsLoadingDefault] = useState(true);
@@ -56,35 +59,55 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
       return;
     }
 
-    if (!walletAddress) {
-      toast.error('Please provide a Monero wallet address');
-      return;
-    }
-
     setIsConnecting(true);
 
     try {
-      const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd291dWd0endtZWp4cWtlcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Njk3MTIsImV4cCI6MjA2ODM0NTcxMn0.qtZk3zk5RMqzlPNhxCkTM6fyVQX5ULGt7nna_XOUr00',
-        },
-        body: JSON.stringify({
-          wallet_address: walletAddress,
-          deviceId,
-          action: 'connect',
-        })
-      });
+      let proxyData;
 
-      const proxyData = await response.json();
+      if (connectionType === 'xmrig') {
+        if (!xmrigApiUrl.trim()) {
+          toast.error('Please enter XMRig API URL');
+          return;
+        }
+
+        const response = await supabase.functions.invoke('xmrig-direct-proxy', {
+          body: {
+            xmrig_api_url: xmrigApiUrl,
+            device_id: deviceId,
+            action: 'connect'
+          }
+        });
+
+        proxyData = response.data;
+        if (response.error) throw response.error;
+      } else {
+        if (!walletAddress) {
+          toast.error('Please provide a Monero wallet address');
+          return;
+        }
+
+        const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd291dWd0endtZWp4cWtlcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Njk3MTIsImV4cCI6MjA2ODM0NTcxMn0.qtZk3zk5RMqzlPNhxCkTM6fyVQX5ULGt7nna_XOUr00',
+          },
+          body: JSON.stringify({
+            wallet_address: walletAddress,
+            deviceId,
+            action: 'connect',
+          })
+        });
+
+        proxyData = await response.json();
+      }
 
       if (!proxyData?.success) {
-        throw new Error(proxyData?.error || 'Failed to fetch mining stats');
+        throw new Error(proxyData?.error || 'Failed to connect miner');
       }
 
       setConnectionSuccess(true);
-      toast.success(`✅ Connected to SupportXMR`, {
+      toast.success(`✅ Connected via ${connectionType === 'xmrig' ? 'XMRig API' : 'SupportXMR'}`, {
         description: `Hashrate: ${(proxyData.stats.hashrate / 1000).toFixed(2)} KH/s | Shares: ${proxyData.stats.shares}`,
       });
       
@@ -92,13 +115,12 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
         onSuccess?.();
         onOpenChange(false);
         setConnectionSuccess(false);
-        // Don't clear wallet address - keep it for next time
       }, 2000);
 
     } catch (error: any) {
       console.error('Error connecting miner:', error);
-      toast.error('Failed to connect to SupportXMR', {
-        description: error.message || 'Please check your wallet address and ensure you are actively mining',
+      toast.error('Failed to connect miner', {
+        description: error.message || 'Please check your configuration and try again',
       });
     } finally {
       setIsConnecting(false);
@@ -125,32 +147,71 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
             <p className="text-sm text-muted-foreground">Your mining rewards are now linked</p>
           </div>
         ) : (
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="wallet">Monero Wallet Address</Label>
-              <Input
-                id="wallet"
-                placeholder={isLoadingDefault ? "Loading default..." : "4... (your SupportXMR wallet)"}
-                value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                disabled={isConnecting || isLoadingDefault}
-                className="font-mono text-xs"
-              />
-              <p className="text-xs text-muted-foreground">
-                {walletAddress ? '✓ Using XMRT DAO pool wallet (editable)' : 'Enter your Monero wallet address that you\'re mining to on SupportXMR'}
-              </p>
-            </div>
+          <Tabs defaultValue="wallet" className="w-full" onValueChange={(v) => setConnectionType(v as 'wallet' | 'xmrig')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="wallet">
+                <Bitcoin className="w-4 h-4 mr-2" />
+                SupportXMR
+              </TabsTrigger>
+              <TabsTrigger value="xmrig">
+                <Cpu className="w-4 h-4 mr-2" />
+                XMRig API
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="bg-muted/50 p-3 rounded-md text-xs space-y-1">
-              <p className="font-medium">How it works:</p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                <li>We fetch your real-time stats from SupportXMR's public API</li>
-                <li>XMR mined while charging converts to bonus XMRT (1:1000 ratio)</li>
-                <li>Get +50% XMRT multiplier for active mining</li>
-                <li>Stats update every 10 seconds automatically</li>
-              </ul>
-            </div>
-          </div>
+            <TabsContent value="wallet" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="wallet">Monero Wallet Address</Label>
+                <Input
+                  id="wallet"
+                  placeholder={isLoadingDefault ? "Loading default..." : "4... (your SupportXMR wallet)"}
+                  value={walletAddress}
+                  onChange={(e) => setWalletAddress(e.target.value)}
+                  disabled={isConnecting || isLoadingDefault}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {walletAddress ? '✓ Using XMRT DAO pool wallet (editable)' : 'Enter your Monero wallet address that you\'re mining to on SupportXMR'}
+                </p>
+              </div>
+
+              <div className="bg-muted/50 p-3 rounded-md text-xs space-y-1">
+                <p className="font-medium">How it works:</p>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                  <li>Fetches stats from SupportXMR's public API</li>
+                  <li>Historical data from mining pool</li>
+                  <li>Updates every 10 seconds</li>
+                </ul>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="xmrig" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="xmrig">XMRig HTTP API URL</Label>
+                <Input
+                  id="xmrig"
+                  placeholder="http://192.168.1.100:8080"
+                  value={xmrigApiUrl}
+                  onChange={(e) => setXmrigApiUrl(e.target.value)}
+                  disabled={isConnecting}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter your XMRig HTTP API endpoint for real-time stats
+                </p>
+              </div>
+
+              <div className="bg-muted/50 p-3 rounded-md text-xs space-y-2">
+                <p className="font-medium">Setup Instructions:</p>
+                <p>1. Enable HTTP API in XMRig config.json:</p>
+                <code className="block bg-background p-2 rounded mt-1 text-[10px]">
+                  "http": &#123; "enabled": true, "host": "0.0.0.0", "port": 8080 &#125;
+                </code>
+                <p className="mt-2">2. Restart XMRig and enter URL above</p>
+                <p className="text-muted-foreground">✨ Get real-time hashrate directly from your miner!</p>
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
 
         {!connectionSuccess && (
@@ -158,7 +219,10 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isConnecting}>
               Cancel
             </Button>
-            <Button onClick={handleConnect} disabled={isConnecting || !walletAddress}>
+            <Button 
+              onClick={handleConnect} 
+              disabled={isConnecting || (connectionType === 'wallet' ? !walletAddress : !xmrigApiUrl)}
+            >
               {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Connect Miner
             </Button>

@@ -1669,6 +1669,13 @@ export type Database = {
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "device_miner_associations_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "xmr_workers"
+            referencedColumns: ["wallet_address"]
+          },
         ]
       }
       devices: {
@@ -4537,6 +4544,7 @@ export type Database = {
       }
       xmr_workers: {
         Row: {
+          connection_type: string | null
           first_seen_at: string | null
           id: string
           is_active: boolean | null
@@ -4547,8 +4555,10 @@ export type Database = {
           rig_label: string | null
           wallet_address: string | null
           worker_id: string
+          xmrig_api_url: string | null
         }
         Insert: {
+          connection_type?: string | null
           first_seen_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -4559,8 +4569,10 @@ export type Database = {
           rig_label?: string | null
           wallet_address?: string | null
           worker_id: string
+          xmrig_api_url?: string | null
         }
         Update: {
+          connection_type?: string | null
           first_seen_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -4571,6 +4583,7 @@ export type Database = {
           rig_label?: string | null
           wallet_address?: string | null
           worker_id?: string
+          xmrig_api_url?: string | null
         }
         Relationships: []
       }
@@ -5523,6 +5536,7 @@ export type Database = {
         | "BLOCKED"
         | "DONE"
         | "CANCELLED"
+        | "COMPLETED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5731,6 +5745,7 @@ export const Constants = {
         "BLOCKED",
         "DONE",
         "CANCELLED",
+        "COMPLETED",
       ],
     },
   },
