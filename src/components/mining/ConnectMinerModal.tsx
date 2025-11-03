@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,31 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
   const [walletAddress, setWalletAddress] = useState('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionSuccess, setConnectionSuccess] = useState(false);
+  const [isLoadingDefault, setIsLoadingDefault] = useState(true);
+
+  // Fetch default wallet address on mount
+  const fetchDefaultWallet = async () => {
+    try {
+      const { data } = await supabase.functions.invoke('supportxmr-proxy', {
+        body: { action: 'get_default_wallet' }
+      });
+      
+      if (data?.success && data.wallet_address) {
+        setWalletAddress(data.wallet_address);
+      }
+    } catch (error) {
+      console.error('Error fetching default wallet:', error);
+    } finally {
+      setIsLoadingDefault(false);
+    }
+  };
+
+  // Load default wallet when modal opens
+  useEffect(() => {
+    if (open && isLoadingDefault) {
+      fetchDefaultWallet();
+    }
+  }, [open, isLoadingDefault]);
 
   const handleConnect = async () => {
     if (!deviceId) {
@@ -56,7 +81,7 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
         onSuccess?.();
         onOpenChange(false);
         setConnectionSuccess(false);
-        setWalletAddress('');
+        // Don't clear wallet address - keep it for next time
       }, 2000);
 
     } catch (error: any) {
@@ -94,14 +119,14 @@ export const ConnectMinerModal = ({ open, onOpenChange, deviceId, onSuccess }: C
               <Label htmlFor="wallet">Monero Wallet Address</Label>
               <Input
                 id="wallet"
-                placeholder="4... (your SupportXMR wallet)"
+                placeholder={isLoadingDefault ? "Loading default..." : "4... (your SupportXMR wallet)"}
                 value={walletAddress}
                 onChange={(e) => setWalletAddress(e.target.value)}
-                disabled={isConnecting}
+                disabled={isConnecting || isLoadingDefault}
                 className="font-mono text-xs"
               />
               <p className="text-xs text-muted-foreground">
-                Enter your Monero wallet address that you're mining to on SupportXMR
+                {walletAddress ? '✓ Using XMRT DAO pool wallet (editable)' : 'Enter your Monero wallet address that you\'re mining to on SupportXMR'}
               </p>
             </div>
 

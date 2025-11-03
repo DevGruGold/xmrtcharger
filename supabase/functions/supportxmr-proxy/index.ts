@@ -21,6 +21,18 @@ serve(async (req) => {
 
     const { wallet_address, deviceId, action = 'fetch_stats' } = await req.json();
 
+    // Handle get_default_wallet action
+    if (action === 'get_default_wallet') {
+      const defaultWallet = Deno.env.get('MINER_WALLET_ADDRESS') || '';
+      return new Response(
+        JSON.stringify({
+          success: true,
+          wallet_address: defaultWallet,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!wallet_address || !wallet_address.startsWith('4')) {
       return new Response(
         JSON.stringify({ error: 'Valid Monero wallet address required (starts with 4)' }),
