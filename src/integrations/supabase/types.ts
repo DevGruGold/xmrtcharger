@@ -4537,6 +4537,7 @@ export type Database = {
           last_seen_at: string | null
           metadata: Json | null
           pool: string | null
+          pool_address: string | null
           rig_label: string | null
           wallet_address: string | null
           worker_id: string
@@ -4548,6 +4549,7 @@ export type Database = {
           last_seen_at?: string | null
           metadata?: Json | null
           pool?: string | null
+          pool_address?: string | null
           rig_label?: string | null
           wallet_address?: string | null
           worker_id: string
@@ -4559,6 +4561,7 @@ export type Database = {
           last_seen_at?: string | null
           metadata?: Json | null
           pool?: string | null
+          pool_address?: string | null
           rig_label?: string | null
           wallet_address?: string | null
           worker_id?: string
