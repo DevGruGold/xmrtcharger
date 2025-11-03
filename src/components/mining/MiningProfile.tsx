@@ -17,7 +17,9 @@ export const MiningProfile = ({ deviceId, sessionId }: MiningProfileProps) => {
 
   const handleConnectSuccess = () => {
     setIsConnecting(true);
-    refresh();
+    
+    // First refresh after 200ms delay to allow DB commit
+    setTimeout(() => refresh(), 200);
     
     // Reset connecting state after 30 seconds if stats don't load
     setTimeout(() => {

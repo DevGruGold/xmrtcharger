@@ -54,11 +54,18 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
         `)
         .eq('device_id', deviceId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       const association: MiningData = associationData;
 
-      if (assocError || !association || !association.xmr_workers) {
+      if (assocError) {
+        console.error('Error fetching mining association:', assocError);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!association || !association.xmr_workers) {
+        console.log('No active mining association found for device:', deviceId);
         setMiningStats({
           xmrMined: 0,
           xmrtFromMining: 0,
@@ -70,6 +77,8 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
         setIsLoading(false);
         return;
       }
+
+      console.log('Found mining association for worker:', association.xmr_workers.worker_id);
 
       // PRIORITY 1: Try XMRig direct API if configured
       if (association.xmr_workers.xmrig_api_url) {
@@ -159,13 +168,14 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
           isActive: true,
         });
       } else {
+        // Use database state - check BOTH association and worker are active
         setMiningStats({
           xmrMined: 0,
           xmrtFromMining: 0,
           hashrate: association.xmr_workers.metadata?.last_hashrate || 0,
           shares: association.xmr_workers.metadata?.total_shares || 0,
           workerId: association.xmr_workers.worker_id,
-          isActive: association.xmr_workers.is_active,
+          isActive: association.is_active && association.xmr_workers.is_active,
         });
       }
     } catch (error) {
