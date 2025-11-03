@@ -21,6 +21,12 @@ serve(async (req) => {
       throw new Error('Invalid XMRig API URL');
     }
 
+    // Get DAO wallet from environment
+    const DAO_WALLET = Deno.env.get('MINER_WALLET_ADDRESS');
+    if (!DAO_WALLET) {
+      throw new Error('DAO wallet not configured');
+    }
+
     // Fetch stats from XMRig HTTP API
     const summaryUrl = `${xmrig_api_url}/2/summary`;
     console.log('📡 Fetching from XMRig:', summaryUrl);
@@ -49,18 +55,35 @@ serve(async (req) => {
     const uptime = xmrigData.uptime || 0;
     const pool_url = xmrigData.connection?.pool || '';
 
+    // Extract wallet from pool connection (format: wallet@domain:port)
+    const wallet_match = pool_url.match(/^([^@]+)@/);
+    const detected_wallet = wallet_match ? wallet_match[1] : null;
+
+    console.log('💰 Wallet Detection:', { pool_url, detected_wallet, dao_wallet: DAO_WALLET });
+
+    // Validate wallet matches DAO pool
+    if (!detected_wallet) {
+      throw new Error('Cannot detect wallet address from XMRig pool connection. Ensure your miner is running and connected to a pool.');
+    }
+
+    if (detected_wallet !== DAO_WALLET) {
+      throw new Error(`You must mine to the XMRT DAO pool wallet. Detected: ${detected_wallet.substring(0, 8)}... but expected: ${DAO_WALLET.substring(0, 8)}...`);
+    }
+
+    console.log('✅ Wallet validation passed - mining to DAO pool');
+
     // If action is 'connect', store in database
     if (action === 'connect' && device_id) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Upsert XMR worker with XMRig API URL
+      // Upsert XMR worker with XMRig API URL and validated wallet
       const { data: worker, error: workerError } = await supabase
         .from('xmr_workers')
         .upsert({
           worker_id: worker_id,
-          wallet_address: pool_url.split('@')[0] || null, // Extract wallet if present
+          wallet_address: detected_wallet,
           xmrig_api_url: xmrig_api_url,
           connection_type: 'xmrig_direct',
           is_active: true,
@@ -68,6 +91,7 @@ serve(async (req) => {
             last_hashrate: hashrate,
             uptime: uptime,
             pool: pool_url,
+            mining_pool_type: 'dao_pool',
             last_updated: new Date().toISOString(),
           },
         }, {
@@ -92,6 +116,9 @@ serve(async (req) => {
           is_active: true,
           metadata: {
             connection_type: 'xmrig_direct',
+            mining_pool_type: 'dao_pool',
+            last_shares_counted: 0,
+            total_shares_rewarded: 0,
             connected_at: new Date().toISOString(),
           },
         }, {
@@ -127,6 +154,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       source: 'xmrig_direct',
+      detected_wallet: detected_wallet,
       worker: {
         worker_id: worker_id,
         is_active: true,

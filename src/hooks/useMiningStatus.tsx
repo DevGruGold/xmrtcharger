@@ -80,7 +80,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
 
       console.log('Found mining association for worker:', association.xmr_workers.worker_id);
 
-      // PRIORITY 1: Try XMRig direct API if configured
+      // PRIORITY 1: Try XMRig direct API (the only supported method now)
       if (association.xmr_workers.xmrig_api_url) {
         try {
           const response = await supabase.functions.invoke('xmrig-direct-proxy', {
@@ -104,41 +104,7 @@ export const useMiningStatus = ({ deviceId, sessionId, enabled = true }: UseMini
             return;
           }
         } catch (xmrigError) {
-          console.warn('XMRig direct API failed, falling back to SupportXMR:', xmrigError);
-        }
-      }
-
-      // PRIORITY 2: Try SupportXMR API if wallet address is available
-      if (association.xmr_workers.wallet_address) {
-        try {
-          const response = await fetch('https://vawouugtzwmejxqkeqqj.supabase.co/functions/v1/supportxmr-proxy', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZhd291dWd0endtZWp4cWtlcXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Njk3MTIsImV4cCI6MjA2ODM0NTcxMn0.qtZk3zk5RMqzlPNhxCkTM6fyVQX5ULGt7nna_XOUr00',
-            },
-            body: JSON.stringify({
-              wallet_address: association.xmr_workers.wallet_address,
-              action: 'fetch_stats',
-            })
-          });
-
-          const proxyData = await response.json();
-
-          if (proxyData?.success) {
-            setMiningStats({
-              xmrMined: proxyData.stats.xmr_earned,
-              xmrtFromMining: proxyData.stats.xmrt_bonus,
-              hashrate: proxyData.stats.hashrate,
-              shares: proxyData.stats.shares,
-              workerId: proxyData.worker.worker_id,
-              isActive: proxyData.worker.is_active,
-            });
-            setIsLoading(false);
-            return;
-          }
-        } catch (proxyError) {
-          console.warn('SupportXMR proxy failed, falling back to database:', proxyError);
+          console.warn('XMRig direct API failed:', xmrigError);
         }
       }
 
