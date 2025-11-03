@@ -17,6 +17,17 @@ const REWARD_CONFIG = {
   MAX_BATTERY_LEVEL: 100, // Stop earning at 100% battery
 };
 
+// XMR Mining Conversion Configuration
+const XMR_XMRT_CONVERSION = {
+  BASE_RATE: 1000, // 1 XMR = 1000 XMRT
+  ACTIVE_MINING_BONUS: 1.5, // +50% if device is mining while charging
+  UPTIME_MULTIPLIER: {
+    HIGH: 1.2,    // >80% uptime
+    MEDIUM: 1.1,  // 50-80% uptime
+    LOW: 1.0      // <50% uptime
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -155,7 +166,68 @@ serve(async (req) => {
       console.log(`🎁 Multi-device bonus applied: ${deviceCount} devices from IP ${ipAddress}`);
     }
 
-    const finalAmount = baseAmount * multiplier;
+    let finalAmount = baseAmount * multiplier;
+    let xmrContribution = null;
+
+    // Check if device is associated with active XMR miner
+    const { data: minerAssociation } = await supabaseClient
+      .from('device_miner_associations')
+      .select(`
+        *,
+        xmr_workers (
+          id,
+          worker_id,
+          wallet_address,
+          is_active,
+          metadata
+        )
+      `)
+      .eq('device_id', deviceId)
+      .eq('is_active', true)
+      .eq('mining_while_charging', true)
+      .single();
+
+    if (minerAssociation && minerAssociation.xmr_workers) {
+      console.log('⛏️ Device has active miner association:', minerAssociation.xmr_workers.worker_id);
+
+      // Get recent XMR earnings from mining_updates (last 5 minutes)
+      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+      const { data: recentMining } = await supabaseClient
+        .from('mining_updates')
+        .select('metric')
+        .eq('miner_id', minerAssociation.xmr_workers.id)
+        .gte('created_at', fiveMinutesAgo)
+        .order('created_at', { ascending: false });
+
+      if (recentMining && recentMining.length > 0) {
+        // Sum XMR earned in recent updates
+        const xmrInSession = recentMining.reduce((sum, update) => {
+          return sum + (update.metric?.xmr_earned || 0);
+        }, 0);
+
+        if (xmrInSession > 0) {
+          // Convert XMR to bonus XMRT
+          const xmrBonusXMRT = xmrInSession * XMR_XMRT_CONVERSION.BASE_RATE;
+          
+          // Apply mining multiplier
+          multiplier *= XMR_XMRT_CONVERSION.ACTIVE_MINING_BONUS;
+          bonuses.push(`Active XMR Mining (+50% + ${xmrBonusXMRT.toFixed(4)} XMRT from ${xmrInSession.toFixed(8)} XMR)`);
+          
+          // Add XMR bonus to final amount
+          finalAmount += xmrBonusXMRT;
+
+          // Track XMR contribution for transaction metadata
+          xmrContribution = {
+            xmr_mined: xmrInSession,
+            xmrt_from_xmr: xmrBonusXMRT,
+            conversion_rate: XMR_XMRT_CONVERSION.BASE_RATE,
+            worker_id: minerAssociation.xmr_workers.worker_id,
+          };
+
+          console.log(`✅ XMR Mining Bonus: ${xmrInSession.toFixed(8)} XMR = ${xmrBonusXMRT.toFixed(4)} XMRT`);
+        }
+      }
+    }
 
     // Update user profile
     const { error: updateError } = await supabaseClient
@@ -170,6 +242,7 @@ serve(async (req) => {
     if (updateError) throw updateError;
 
     // Create transaction record
+    const transactionType = xmrContribution ? 'combined_reward' : 'time_reward';
     const { error: txError } = await supabaseClient
       .from('xmrt_transactions')
       .insert({
@@ -177,7 +250,7 @@ serve(async (req) => {
         device_id: deviceId,
         session_id: sessionId,
         amount: finalAmount,
-        transaction_type: 'time_reward',
+        transaction_type: transactionType,
         reason: bonuses.length > 0 
           ? `Time reward with bonuses: ${bonuses.join(', ')}`
           : 'Time reward',
@@ -191,6 +264,7 @@ serve(async (req) => {
           max_mode_enabled: maxModeEnabled,
           is_offline: isOffline || false,
           device_count: profile.device_ids.length,
+          xmr_contribution: xmrContribution,
         }
       });
 

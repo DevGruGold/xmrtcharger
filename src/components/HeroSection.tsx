@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Zap, Clock, TrendingUp, Plane } from 'lucide-react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { XMRConversionTicker } from './XMRConversionTicker';
+import { MiningProfile } from './mining/MiningProfile';
 
 interface HeroSectionProps {
   batteryStatus: BatteryStatus | null;
@@ -128,7 +130,7 @@ export const HeroSection = ({
                 <motion.div className="text-2xl font-bold text-foreground">
                   {displayTime}
                 </motion.div>
-                <div className="text-xs text-muted-foreground mt-1">Time Online</div>
+                <div className="text-xs text-muted-foreground mt-1">Session Time</div>
               </div>
 
               {/* XMRT Earned */}
@@ -163,6 +165,12 @@ export const HeroSection = ({
               </h2>
               
               <BatteryVisualization batteryStatus={batteryStatus} />
+
+              {/* XMR Mining Integration */}
+              <XMRConversionTicker deviceId={deviceId} sessionId={sessionId} />
+              
+              {/* Mining Profile */}
+              <MiningProfile deviceId={deviceId} sessionId={sessionId} />
               
               <p className="text-sm text-muted-foreground text-center max-w-md">
                 {!batteryStatus?.charging

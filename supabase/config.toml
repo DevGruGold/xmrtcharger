@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.award-xmrt-tokens]
 verify_jwt = false
+
+[functions.ingest-mining-data]
+verify_jwt = false
+
+[functions.associate-device-miner]
+verify_jwt = false
