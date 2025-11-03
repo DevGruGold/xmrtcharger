@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { useEffect } from 'react';
-import { Bitcoin, Zap, TrendingUp } from 'lucide-react';
+import { Bitcoin, Zap, TrendingUp, Loader2 } from 'lucide-react';
 import { useMiningStatus } from '@/hooks/useMiningStatus';
 
 interface XMRConversionTickerProps {
@@ -29,13 +29,86 @@ const AnimatedNumber = ({ value, decimals = 2, prefix = '', suffix = '' }: {
 
 export const XMRConversionTicker = ({ deviceId, sessionId }: XMRConversionTickerProps) => {
   const { miningStats, isLoading } = useMiningStatus({ deviceId, sessionId });
-
-  if (!miningStats.isActive || isLoading) {
-    return null;
-  }
-
   const conversionRate = 1000;
 
+  // Loading State
+  if (isLoading) {
+    return (
+      <Card className="p-4 border-border/50 bg-gradient-to-br from-card to-muted/30">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Bitcoin className="h-4 w-4 text-muted-foreground animate-pulse" />
+            <span className="text-muted-foreground">XMR Mining → XMRT Conversion</span>
+          </div>
+          
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-sm text-muted-foreground">Checking mining status...</span>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Not Connected State
+  if (!miningStats.isActive) {
+    return (
+      <Card className="p-4 border-dashed border-2 border-border/50 bg-gradient-to-br from-card to-muted/20">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Bitcoin className="h-4 w-4 text-muted-foreground/70" />
+            <span className="text-muted-foreground">XMR Mining → XMRT Conversion</span>
+          </div>
+
+          {/* Equation with Zero Values */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 py-2 opacity-60">
+            {/* XMR Mined - Zero */}
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl font-bold text-muted-foreground">
+                0.00000000 XMR
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">Mined</div>
+            </div>
+
+            {/* Multiplication */}
+            <div className="text-lg sm:text-2xl font-bold text-muted-foreground/50 px-1 sm:px-2">×</div>
+
+            {/* Conversion Rate */}
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl font-bold text-muted-foreground">
+                {conversionRate}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">Rate</div>
+            </div>
+
+            {/* Equals */}
+            <div className="text-lg sm:text-2xl font-bold text-muted-foreground/50 px-1 sm:px-2">=</div>
+
+            {/* XMRT Earned - Zero */}
+            <div className="text-center">
+              <div className="text-xl sm:text-2xl font-bold text-muted-foreground">
+                0.0000 XMRT
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">Bonus</div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="text-center py-2 border-t border-dashed border-border">
+            <p className="text-sm text-muted-foreground mb-1">
+              🚀 Connect your Monero mining worker below to start earning
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Mining bonus: <span className="text-primary font-medium">+50%</span> XMRT while charging
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Active Mining State
   return (
     <Card className="p-4 border-[hsl(var(--xmr-orange))] bg-gradient-to-br from-card to-[hsl(var(--xmr-orange))]/5">
       <div className="space-y-3">
@@ -45,12 +118,12 @@ export const XMRConversionTicker = ({ deviceId, sessionId }: XMRConversionTicker
           <span className="text-foreground">XMR Mining → XMRT Conversion (Live)</span>
         </div>
 
-        {/* Main Equation */}
-        <div className="flex items-center justify-center gap-3 py-2">
+        {/* Main Equation - Responsive */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 py-2">
           {/* XMR Mined */}
           <div className="text-center">
             <motion.div 
-              className="text-2xl font-bold text-[hsl(var(--xmr-orange))]"
+              className="text-xl sm:text-2xl font-bold text-[hsl(var(--xmr-orange))]"
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -60,23 +133,23 @@ export const XMRConversionTicker = ({ deviceId, sessionId }: XMRConversionTicker
           </div>
 
           {/* Multiplication */}
-          <div className="text-2xl font-bold text-muted-foreground px-2">×</div>
+          <div className="text-lg sm:text-2xl font-bold text-muted-foreground px-1 sm:px-2">×</div>
 
           {/* Conversion Rate */}
           <div className="text-center">
-            <div className="text-2xl font-bold text-muted-foreground">
+            <div className="text-xl sm:text-2xl font-bold text-muted-foreground">
               {conversionRate}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">Rate</div>
           </div>
 
           {/* Equals */}
-          <div className="text-2xl font-bold text-muted-foreground px-2">=</div>
+          <div className="text-lg sm:text-2xl font-bold text-muted-foreground px-1 sm:px-2">=</div>
 
           {/* XMRT Earned */}
           <div className="text-center">
             <motion.div 
-              className="text-2xl font-bold text-primary"
+              className="text-xl sm:text-2xl font-bold text-primary"
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
             >
@@ -86,8 +159,8 @@ export const XMRConversionTicker = ({ deviceId, sessionId }: XMRConversionTicker
           </div>
         </div>
 
-        {/* Mining Stats */}
-        <div className="flex items-center justify-between text-xs border-t border-border pt-2">
+        {/* Mining Stats - Stack on mobile */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 text-xs border-t border-border pt-2">
           <div className="flex items-center gap-1">
             <Zap className="h-3 w-3 text-[hsl(var(--xmr-orange))]" />
             <span className="text-muted-foreground">Hashrate:</span>
@@ -104,7 +177,7 @@ export const XMRConversionTicker = ({ deviceId, sessionId }: XMRConversionTicker
             </span>
           </div>
 
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground text-center sm:text-left">
             Worker: <span className="font-mono text-foreground">{miningStats.workerId}</span>
           </div>
         </div>
