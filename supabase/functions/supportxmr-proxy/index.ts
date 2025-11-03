@@ -51,10 +51,32 @@ serve(async (req) => {
     const stats = await response.json();
     console.log('📊 Received stats:', JSON.stringify(stats, null, 2));
 
-    const hashrate = stats.hash || stats.hashrate || 0;
+    // Fetch worker-specific hashrates from identifiers endpoint
+    let hashrate = 0;
+    let workers = stats.identifiers || [];
+    
+    try {
+      const identifiersResponse = await fetch(`${SUPPORTXMR_API}/${wallet_address}/identifiers`);
+      if (identifiersResponse.ok) {
+        const identifiersData = await identifiersResponse.json();
+        console.log('👷 Received worker data:', JSON.stringify(identifiersData, null, 2));
+        
+        // Sum up hashrates from all active workers
+        if (identifiersData && typeof identifiersData === 'object') {
+          hashrate = Object.values(identifiersData).reduce((sum: number, worker: any) => {
+            return sum + (worker?.hashrate || worker?.hash || 0);
+          }, 0);
+          workers = Object.keys(identifiersData);
+        }
+        console.log(`⚡ Calculated total hashrate: ${hashrate} H/s from ${workers.length} workers`);
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to fetch worker hashrates, using stats fallback:', err);
+      hashrate = stats.hash || stats.hashrate || 0;
+    }
+
     const shares = stats.validShares || stats.shares || 0;
     const xmr_earned = (stats.amtDue || stats.balance || 0) / 1e12;
-    const workers = stats.identifiers || [];
 
     const { data: worker, error: workerError } = await supabaseClient
       .from('xmr_workers')
