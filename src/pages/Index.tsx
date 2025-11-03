@@ -7,6 +7,7 @@ import { MaxChargingMode } from "@/components/MaxChargingMode";
 import { HeroSection } from "@/components/HeroSection";
 import { AIOptimizationInsights } from "@/components/battery/AIOptimizationInsights";
 import { AirplaneModeCoach } from "@/components/battery/AirplaneModeCoach";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
@@ -26,6 +27,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Offline indicator */}
+      <OfflineIndicator />
+      
       {/* Subtle background pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03]" style={{
         backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)',

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { offlineStorage } from '@/utils/offlineStorage';
 
 interface RewardData {
   awarded: boolean;
@@ -123,6 +124,36 @@ export const useRewardSystem = ({
     setState(prev => ({ ...prev, isChecking: true }));
 
     try {
+      // Check if online
+      if (!navigator.onLine) {
+        // Calculate estimated reward offline
+        const estimatedReward = maxModeEnabled ? 1.5 : 1.0;
+        
+        // Queue for sync
+        await offlineStorage.queueRewardClaim({
+          deviceId,
+          timestamp: Date.now(),
+          estimatedAmount: estimatedReward,
+        });
+        
+        // Update UI optimistically
+        setState(prev => ({
+          ...prev,
+          totalXmrt: prev.totalXmrt + estimatedReward,
+          lastReward: {
+            amount: estimatedReward,
+            newTotal: prev.totalXmrt + estimatedReward,
+            awarded: true,
+            reason: 'Offline reward (pending sync)'
+          },
+          timeUntilNextReward: 60,
+          isChecking: false,
+        }));
+        
+        console.log('📱 Queued offline reward:', estimatedReward);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('award-xmrt-tokens', {
         body: {
           ipAddress: ip,

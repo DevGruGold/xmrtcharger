@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getDeviceInfo } from '@/utils/deviceDetection';
+import { offlineStorage } from '@/utils/offlineStorage';
 
 export interface DeviceConnectionInfo {
   deviceId: string;
@@ -103,6 +104,22 @@ export const useDeviceConnection = () => {
       const deviceInfo = getDeviceInfo();
       const fingerprint = generateDeviceFingerprint();
       
+      // Try to load cached device state if offline
+      if (!navigator.onLine) {
+        const cachedState = await offlineStorage.getDeviceState(fingerprint);
+        if (cachedState) {
+          setConnectionInfo({
+            deviceId: cachedState.deviceId,
+            sessionId: cachedState.sessionId,
+            sessionKey: cachedState.sessionKey,
+            isConnected: false, // Offline mode
+          });
+          deviceInitializedRef.current = true;
+          console.log('📱 Loaded cached device state (offline)');
+          return;
+        }
+      }
+      
       // Register device and get UUID
       const deviceUUID = await registerDevice(fingerprint, deviceInfo);
       
@@ -140,12 +157,22 @@ export const useDeviceConnection = () => {
       }
 
       if (data?.sessionId) {
-        setConnectionInfo(prev => ({
-          ...prev,
+        const newConnectionInfo = {
           deviceId: deviceUUID,
           sessionId: data.sessionId,
+          sessionKey: connectionInfo.sessionKey,
           isConnected: true,
-        }));
+        };
+        
+        setConnectionInfo(newConnectionInfo);
+        
+        // Save to offline storage
+        await offlineStorage.saveDeviceState({
+          ...newConnectionInfo,
+          fingerprint,
+          lastSync: Date.now(),
+        });
+        
         deviceInitializedRef.current = true;
         console.log('✅ Device connected successfully:', data.sessionId);
       }

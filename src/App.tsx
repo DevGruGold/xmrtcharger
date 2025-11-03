@@ -7,6 +7,8 @@ import { Web3Modal } from '@web3modal/react';
 import { WagmiConfig, createConfig, configureChains, mainnet } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { EthereumClient, w3mConnectors } from '@web3modal/ethereum';
+import { useEffect } from 'react';
+import { offlineStorage } from '@/utils/offlineStorage';
 import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
@@ -27,25 +29,36 @@ const wagmiConfig = createConfig({
 
 const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
-const App = () => (
-  <WagmiConfig config={wagmiConfig}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-    <Web3Modal
-      projectId={projectId}
-      ethereumClient={ethereumClient}
-      themeMode="light"
-    />
-  </WagmiConfig>
-);
+const App = () => {
+  // Initialize offline storage on app start
+  useEffect(() => {
+    offlineStorage.init().then(() => {
+      console.log('📱 Offline storage initialized');
+    }).catch((error) => {
+      console.error('Failed to initialize offline storage:', error);
+    });
+  }, []);
+
+  return (
+    <WagmiConfig config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+      <Web3Modal
+        projectId={projectId}
+        ethereumClient={ethereumClient}
+        themeMode="light"
+      />
+    </WagmiConfig>
+  );
+};
 
 export default App;

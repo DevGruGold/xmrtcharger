@@ -1,0 +1,28 @@
+{
+  "name": "XMRT Charger",
+  "short_name": "XMRT",
+  "description": "AI-powered battery optimization and charging rewards platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#6366F1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Battery Monitor",
+      "short_name": "Battery",
+      "description": "View battery status",
+      "url": "/#battery",
+      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+    }
+  ]
+}

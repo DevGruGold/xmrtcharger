@@ -8,6 +8,7 @@ import { calculateChargingEfficiency } from '@/utils/batteryHealth';
 import { getDeviceInfo } from '@/utils/deviceDetection';
 import { getBatteryDrainAnalyzer } from '@/utils/batteryDrainAnalyzer';
 import { recordBatteryReading } from '@/utils/supabaseBatteryHistory';
+import { offlineStorage } from '@/utils/offlineStorage';
 
 interface UseBatteryOptions {
   deviceId?: string;
@@ -186,17 +187,47 @@ export const useBattery = (options?: UseBatteryOptions) => {
           const currentLevel = battery.level * 100;
           const chargingSpeed = battery.charging ? determineChargingSpeed(battery.chargingTime) : undefined;
           
-          await recordBatteryReading(
-            deviceId,
-            sessionId,
-            currentLevel,
-            battery.charging,
-            battery.chargingTime === Infinity ? null : battery.chargingTime,
-            battery.dischargingTime === Infinity ? null : battery.dischargingTime,
-            chargingSpeed,
-            undefined,
-            { periodic_reading: true }
-          );
+          try {
+            // Try Supabase first
+            await recordBatteryReading(
+              deviceId,
+              sessionId,
+              currentLevel,
+              battery.charging,
+              battery.chargingTime === Infinity ? null : battery.chargingTime,
+              battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+              chargingSpeed,
+              undefined,
+              { periodic_reading: true }
+            );
+          } catch (error) {
+            // Fall back to offline storage
+            console.log('📱 Saving battery reading offline');
+            await offlineStorage.saveBatteryReading({
+              deviceId,
+              sessionId,
+              timestamp: Date.now(),
+              level: currentLevel,
+              charging: battery.charging,
+              chargingSpeed,
+              metadata: { periodic_reading: true }
+            });
+            
+            // Queue for sync
+            await offlineStorage.addToSyncQueue({
+              type: 'battery',
+              data: {
+                deviceId,
+                sessionId,
+                batteryLevel: currentLevel,
+                isCharging: battery.charging,
+                chargingTimeRemaining: battery.chargingTime === Infinity ? null : battery.chargingTime,
+                dischargingTimeRemaining: battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+                chargingSpeed,
+                metadata: { periodic_reading: true }
+              }
+            });
+          }
           
           // Log periodic reading activity
           if (options?.logActivity) {
