@@ -45,10 +45,18 @@ export const useRewardSystem = ({
     timeUntilNextReward: 60,
   });
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Use refs to prevent infinite loops
   const ipAddressRef = useRef<string | null>(null);
+  const initialLoadDoneRef = useRef(false);
+  const checkingRef = useRef(false);
+  const onRewardEarnedRef = useRef(onRewardEarned);
 
-  // Get user's IP address
+  // Keep callback ref updated
+  useEffect(() => {
+    onRewardEarnedRef.current = onRewardEarned;
+  }, [onRewardEarned]);
+
+  // Get user's IP address (memoized)
   const getIpAddress = useCallback(async () => {
     if (ipAddressRef.current) return ipAddressRef.current;
     
@@ -63,64 +71,78 @@ export const useRewardSystem = ({
     }
   }, []);
 
-  // Load user profile
-  const loadProfile = useCallback(async () => {
-    const ip = await getIpAddress();
-    if (!ip) return;
+  // Load user profile - only runs once on mount
+  useEffect(() => {
+    if (initialLoadDoneRef.current) return;
+    initialLoadDoneRef.current = true;
 
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('total_xmrt_earned, last_reward_at')
-        .eq('ip_address', ip)
-        .maybeSingle();
+    const loadProfile = async () => {
+      const ip = await getIpAddress();
+      if (!ip) return;
 
-      if (error) throw error;
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('total_xmrt_earned, last_reward_at')
+          .eq('ip_address', ip)
+          .maybeSingle();
 
-      if (data) {
-        setState(prev => ({ ...prev, totalXmrt: data.total_xmrt_earned }));
+        if (error) throw error;
 
-        // Calculate time until next reward
-        if (data.last_reward_at) {
-          const lastRewardTime = new Date(data.last_reward_at).getTime();
-          const now = Date.now();
-          const elapsed = (now - lastRewardTime) / 1000;
-          const remaining = Math.max(0, 60 - elapsed);
-          setState(prev => ({ ...prev, timeUntilNextReward: Math.ceil(remaining) }));
+        if (data) {
+          setState(prev => {
+            if (prev.totalXmrt === data.total_xmrt_earned) return prev;
+            return { ...prev, totalXmrt: data.total_xmrt_earned };
+          });
+
+          // Calculate time until next reward
+          if (data.last_reward_at) {
+            const lastRewardTime = new Date(data.last_reward_at).getTime();
+            const now = Date.now();
+            const elapsed = (now - lastRewardTime) / 1000;
+            const remaining = Math.max(0, 60 - elapsed);
+            setState(prev => {
+              if (prev.timeUntilNextReward === Math.ceil(remaining)) return prev;
+              return { ...prev, timeUntilNextReward: Math.ceil(remaining) };
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error loading profile:', error);
       }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    }
+    };
+
+    loadProfile();
   }, [getIpAddress]);
 
-  // Check for rewards
+  // Check for rewards - uses refs to avoid stale closures
   const checkRewards = useCallback(async () => {
-    if (!deviceId || state.isChecking) return;
+    if (!deviceId || checkingRef.current) return;
 
     // Don't check if not charging - XMRT only awarded when charging
     if (!isCharging) {
       console.log('⚠️ Not charging - rewards paused');
-      setState(prev => ({
-        ...prev,
-        timeUntilNextReward: 0,
-      }));
+      setState(prev => {
+        if (prev.timeUntilNextReward === 0) return prev;
+        return { ...prev, timeUntilNextReward: 0 };
+      });
       return;
     }
 
     // Don't check if battery is at 100%
     if (batteryLevel >= 100) {
       console.log('⚠️ Battery at 100% - rewards paused');
-      setState(prev => ({
-        ...prev,
-        timeUntilNextReward: 0,
-      }));
+      setState(prev => {
+        if (prev.timeUntilNextReward === 0) return prev;
+        return { ...prev, timeUntilNextReward: 0 };
+      });
       return;
     }
 
     const ip = await getIpAddress();
     if (!ip) return;
 
+    checkingRef.current = true;
     setState(prev => ({ ...prev, isChecking: true }));
 
     try {
@@ -144,7 +166,6 @@ export const useRewardSystem = ({
             amount: estimatedReward,
             newTotal: prev.totalXmrt + estimatedReward,
             awarded: true,
-            reason: 'Offline reward (pending sync)'
           },
           timeUntilNextReward: 60,
           isChecking: false,
@@ -177,50 +198,53 @@ export const useRewardSystem = ({
         }));
 
         // Trigger reward animation callback
-        if (onRewardEarned) {
-          onRewardEarned(data);
+        if (onRewardEarnedRef.current) {
+          onRewardEarnedRef.current(data);
         }
 
         console.log('🎉 Earned XMRT:', data.amount);
       } else if (data.nextRewardIn !== undefined) {
-        setState(prev => ({
-          ...prev,
-          timeUntilNextReward: data.nextRewardIn,
-        }));
+        setState(prev => {
+          if (prev.timeUntilNextReward === data.nextRewardIn) return prev;
+          return { ...prev, timeUntilNextReward: data.nextRewardIn };
+        });
       }
     } catch (error) {
       console.error('Error checking rewards:', error);
     } finally {
+      checkingRef.current = false;
       setState(prev => ({ ...prev, isChecking: false }));
     }
-  }, [deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, isOffline, state.isChecking, getIpAddress, onRewardEarned]);
+  }, [deviceId, sessionId, isCharging, batteryLevel, maxModeEnabled, isOffline, getIpAddress]);
 
-  // Initialize and set up polling
+  // Set up polling - separate from initial load to avoid loops
   useEffect(() => {
-    loadProfile();
+    if (!deviceId) return;
 
-    // Check for rewards every 30 seconds
-    intervalRef.current = setInterval(() => {
+    // Initial check after a short delay
+    const initialTimeout = setTimeout(() => {
       checkRewards();
-    }, 30000);
+    }, 1000);
 
-    // Also check immediately
-    checkRewards();
+    // Check for rewards every 60 seconds (matching reward interval)
+    const intervalId = setInterval(() => {
+      checkRewards();
+    }, 60000);
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      clearTimeout(initialTimeout);
+      clearInterval(intervalId);
     };
-  }, [loadProfile, checkRewards]);
+  }, [deviceId, checkRewards]);
 
   // Update countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setState(prev => ({
-        ...prev,
-        timeUntilNextReward: Math.max(0, prev.timeUntilNextReward - 1),
-      }));
+      setState(prev => {
+        const newTime = Math.max(0, prev.timeUntilNextReward - 1);
+        if (newTime === prev.timeUntilNextReward) return prev;
+        return { ...prev, timeUntilNextReward: newTime };
+      });
     }, 1000);
 
     return () => clearInterval(timer);
