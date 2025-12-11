@@ -85,7 +85,17 @@ export const HeroSection = ({
 
   // Transform springs to formatted strings
   const displayXmrt = useTransform(xmrtSpring, (value) => value.toFixed(2));
-  const displayNextReward = useTransform(nextRewardSpring, (value) => formatTime(Math.floor(value)));
+  
+  // Determine if rewards are paused
+  const isRewardsPaused = timeUntilNextReward < 0;
+  const isBatteryFull = timeUntilNextReward === -2;
+  
+  // Format next reward display
+  const getNextRewardDisplay = () => {
+    if (timeUntilNextReward === -1) return '⚡ Plug in';
+    if (timeUntilNextReward === -2) return '🔋 Full';
+    return formatTime(Math.floor(timeUntilNextReward));
+  };
 
   // Initialize session start time
   useEffect(() => {
@@ -183,12 +193,14 @@ export const HeroSection = ({
               </div>
 
               {/* Next Reward */}
-              <div className="text-center p-4 rounded-lg bg-muted border border-border">
-                <Zap className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <motion.div className="text-2xl font-bold text-foreground">
-                  {displayNextReward}
-                </motion.div>
-                <div className="text-xs text-muted-foreground mt-1">Next Reward</div>
+              <div className={`text-center p-4 rounded-lg border ${isRewardsPaused ? 'bg-muted/50 border-border/50' : 'bg-muted border-border'}`}>
+                <Zap className={`h-5 w-5 mx-auto mb-2 ${isRewardsPaused ? 'text-muted-foreground' : 'text-primary'}`} />
+                <div className={`text-2xl font-bold ${isRewardsPaused ? 'text-muted-foreground text-lg' : 'text-foreground'}`}>
+                  {getNextRewardDisplay()}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {isRewardsPaused ? 'Rewards Paused' : 'Next Reward'}
+                </div>
               </div>
             </div>
 

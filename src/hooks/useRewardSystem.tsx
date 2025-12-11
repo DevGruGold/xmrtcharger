@@ -56,19 +56,43 @@ export const useRewardSystem = ({
     onRewardEarnedRef.current = onRewardEarned;
   }, [onRewardEarned]);
 
-  // Get user's IP address (memoized)
+  // Get user's IP address with fallbacks (memoized)
   const getIpAddress = useCallback(async () => {
     if (ipAddressRef.current) return ipAddressRef.current;
     
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      ipAddressRef.current = data.ip;
-      return data.ip;
-    } catch (error) {
-      console.error('Failed to get IP address:', error);
-      return null;
+    // Check localStorage cache first
+    const cachedIp = localStorage.getItem('user_ip_address');
+    if (cachedIp) {
+      ipAddressRef.current = cachedIp;
+      return cachedIp;
     }
+    
+    // Try multiple IP services with fallbacks
+    const ipServices = [
+      { url: 'https://api.ipify.org?format=json', parse: (d: any) => d.ip },
+      { url: 'https://ipinfo.io/json', parse: (d: any) => d.ip },
+      { url: 'https://api.myip.com', parse: (d: any) => d.ip },
+    ];
+    
+    for (const service of ipServices) {
+      try {
+        const response = await fetch(service.url, { 
+          signal: AbortSignal.timeout(3000) // 3 second timeout
+        });
+        const data = await response.json();
+        const ip = service.parse(data);
+        if (ip) {
+          ipAddressRef.current = ip;
+          localStorage.setItem('user_ip_address', ip);
+          return ip;
+        }
+      } catch {
+        continue; // Try next service
+      }
+    }
+    
+    console.warn('All IP services failed, using deviceId fallback');
+    return null;
   }, []);
 
   // Load user profile - only runs once on mount
@@ -78,16 +102,35 @@ export const useRewardSystem = ({
 
     const loadProfile = async () => {
       const ip = await getIpAddress();
-      if (!ip) return;
-
+      
       try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('total_xmrt_earned, last_reward_at')
-          .eq('ip_address', ip)
-          .maybeSingle();
-
-        if (error) throw error;
+        let data = null;
+        
+        // Try by IP first
+        if (ip) {
+          const { data: ipData, error } = await supabase
+            .from('user_profiles')
+            .select('total_xmrt_earned, last_reward_at')
+            .eq('ip_address', ip)
+            .maybeSingle();
+          
+          if (!error && ipData) {
+            data = ipData;
+          }
+        }
+        
+        // Fallback: Try by deviceId if IP lookup failed
+        if (!data && deviceId) {
+          const { data: deviceData } = await supabase
+            .from('user_profiles')
+            .select('total_xmrt_earned, last_reward_at')
+            .contains('devices', [deviceId])
+            .maybeSingle();
+          
+          if (deviceData) {
+            data = deviceData;
+          }
+        }
 
         if (data) {
           setState(prev => {
@@ -95,8 +138,8 @@ export const useRewardSystem = ({
             return { ...prev, totalXmrt: data.total_xmrt_earned };
           });
 
-          // Calculate time until next reward
-          if (data.last_reward_at) {
+          // Calculate time until next reward (only if charging)
+          if (data.last_reward_at && isCharging) {
             const lastRewardTime = new Date(data.last_reward_at).getTime();
             const now = Date.now();
             const elapsed = (now - lastRewardTime) / 1000;
@@ -113,18 +156,19 @@ export const useRewardSystem = ({
     };
 
     loadProfile();
-  }, [getIpAddress]);
+  }, [getIpAddress, deviceId, isCharging]);
 
   // Check for rewards - uses refs to avoid stale closures
   const checkRewards = useCallback(async () => {
     if (!deviceId || checkingRef.current) return;
 
     // Don't check if not charging - XMRT only awarded when charging
+    // Set timeUntilNextReward to -1 to indicate "paused" state
     if (!isCharging) {
       console.log('⚠️ Not charging - rewards paused');
       setState(prev => {
-        if (prev.timeUntilNextReward === 0) return prev;
-        return { ...prev, timeUntilNextReward: 0 };
+        if (prev.timeUntilNextReward === -1) return prev;
+        return { ...prev, timeUntilNextReward: -1 };
       });
       return;
     }
@@ -133,8 +177,8 @@ export const useRewardSystem = ({
     if (batteryLevel >= 100) {
       console.log('⚠️ Battery at 100% - rewards paused');
       setState(prev => {
-        if (prev.timeUntilNextReward === 0) return prev;
-        return { ...prev, timeUntilNextReward: 0 };
+        if (prev.timeUntilNextReward === -2) return prev;
+        return { ...prev, timeUntilNextReward: -2 };
       });
       return;
     }
