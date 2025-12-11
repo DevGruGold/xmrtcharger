@@ -77,6 +77,7 @@ const Index = () => {
             deviceId={connection.deviceId}
             sessionId={connection.sessionId}
             maxModeEnabled={maxModeEnabled}
+            sessionStartTime={connection.sessionStartTime}
           />
 
           {/* Airplane Mode Coach */}

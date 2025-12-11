@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { BatteryVisualization } from './battery/BatteryVisualization';
 import { BatteryStatus } from '@/types/battery';
@@ -6,7 +6,7 @@ import { useRewardSystem } from '@/hooks/useRewardSystem';
 import { RewardParticleSystem } from './hero/RewardParticleSystem';
 import { SoundManager } from './hero/SoundManager';
 import { supabase } from '@/integrations/supabase/client';
-import { Zap, Clock, TrendingUp, Plane } from 'lucide-react';
+import { Zap, Clock, TrendingUp, Plane, Loader2 } from 'lucide-react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { XMRConversionTicker } from './XMRConversionTicker';
@@ -17,10 +17,13 @@ interface HeroSectionProps {
   deviceId: string | null;
   sessionId: string | null;
   maxModeEnabled: boolean;
+  sessionStartTime?: number | null;
 }
 
 // Helper function to format time (defined before usage)
 const formatTime = (seconds: number) => {
+  if (seconds <= 0) return '0s';
+  
   const hours = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -28,17 +31,23 @@ const formatTime = (seconds: number) => {
   if (hours > 0) {
     return `${hours}h ${mins}m`;
   }
-  return `${mins}m ${secs}s`;
+  if (mins > 0) {
+    return `${mins}m ${secs}s`;
+  }
+  return `${secs}s`;
 };
 
 export const HeroSection = ({ 
   batteryStatus, 
   deviceId, 
   sessionId,
-  maxModeEnabled 
+  maxModeEnabled,
+  sessionStartTime 
 }: HeroSectionProps) => {
   const [showParticles, setShowParticles] = useState(false);
-  const [realSessionDuration, setRealSessionDuration] = useState(0);
+  const [localSessionTime, setLocalSessionTime] = useState(0);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const sessionStartRef = useRef<number | null>(null);
 
   // Network status for airplane mode detection
   const networkStatus = useNetworkStatus({ 
@@ -47,7 +56,6 @@ export const HeroSection = ({
 
   // Smooth animation springs for numbers
   const xmrtSpring = useSpring(0, { stiffness: 50, damping: 20 });
-  const timeSpring = useSpring(0, { stiffness: 50, damping: 20 });
   const nextRewardSpring = useSpring(0, { stiffness: 50, damping: 20 });
 
   const { 
@@ -72,40 +80,66 @@ export const HeroSection = ({
   }, [totalXmrt, xmrtSpring]);
 
   useEffect(() => {
-    timeSpring.set(realSessionDuration);
-  }, [realSessionDuration, timeSpring]);
-
-  useEffect(() => {
     nextRewardSpring.set(timeUntilNextReward);
   }, [timeUntilNextReward, nextRewardSpring]);
 
   // Transform springs to formatted strings
   const displayXmrt = useTransform(xmrtSpring, (value) => value.toFixed(2));
-  const displayTime = useTransform(timeSpring, (value) => formatTime(Math.floor(value)));
   const displayNextReward = useTransform(nextRewardSpring, (value) => formatTime(Math.floor(value)));
 
-  // Fetch real session duration from Supabase
+  // Initialize session start time
   useEffect(() => {
-    if (!sessionId) return;
-
-    const fetchSessionDuration = async () => {
-      const { data, error } = await supabase
-        .from('device_connection_sessions')
-        .select('connected_at')
-        .eq('id', sessionId)
-        .single();
-
-      if (data && !error) {
-        const connectedAt = new Date(data.connected_at).getTime();
-        const now = Date.now();
-        setRealSessionDuration(Math.floor((now - connectedAt) / 1000));
+    const initSessionTime = async () => {
+      // Priority 1: Use sessionStartTime from props (from useDeviceConnection)
+      if (sessionStartTime) {
+        sessionStartRef.current = sessionStartTime;
+        setIsLoadingSession(false);
+        return;
       }
+
+      // Priority 2: Fetch from database if we have a sessionId
+      if (sessionId) {
+        try {
+          const { data, error } = await supabase
+            .from('device_connection_sessions')
+            .select('connected_at')
+            .eq('id', sessionId)
+            .single();
+
+          if (data && !error) {
+            sessionStartRef.current = new Date(data.connected_at).getTime();
+            setIsLoadingSession(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Error fetching session:', error);
+        }
+      }
+
+      // Priority 3: Fallback to current time (new session)
+      sessionStartRef.current = Date.now();
+      setIsLoadingSession(false);
     };
 
-    fetchSessionDuration();
-    const interval = setInterval(fetchSessionDuration, 5000); // Update every 5 seconds
+    initSessionTime();
+  }, [sessionId, sessionStartTime]);
+
+  // Local ticking timer for session duration
+  useEffect(() => {
+    if (!sessionStartRef.current) return;
+
+    const updateTimer = () => {
+      const elapsed = Math.floor((Date.now() - sessionStartRef.current!) / 1000);
+      setLocalSessionTime(elapsed);
+    };
+
+    // Initial update
+    updateTimer();
+
+    // Tick every second
+    const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [sessionId]);
+  }, [isLoadingSession]);
 
   return (
     <>
@@ -127,9 +161,15 @@ export const HeroSection = ({
               {/* Time Online */}
               <div className="text-center p-4 rounded-lg bg-muted border border-border">
                 <Clock className="h-5 w-5 mx-auto mb-2 text-primary" />
-                <motion.div className="text-2xl font-bold text-foreground">
-                  {displayTime}
-                </motion.div>
+                {isLoadingSession ? (
+                  <div className="flex items-center justify-center h-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="text-2xl font-bold text-foreground">
+                    {formatTime(localSessionTime)}
+                  </div>
+                )}
                 <div className="text-xs text-muted-foreground mt-1">Session Time</div>
               </div>
 

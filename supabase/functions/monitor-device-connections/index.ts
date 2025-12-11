@@ -30,28 +30,66 @@ serve(async (req) => {
     );
 
     const event: ConnectionEvent = await req.json();
-    console.log('📡 Connection event:', event.eventType, 'for device:', event.deviceId);
+    console.log('📡 Connection event:', event.eventType, 'for device:', event.deviceId, 'session:', event.sessionKey);
 
     if (event.eventType === 'connect') {
-      // Check for existing active session
-      const { data: existingSessions } = await supabaseClient
+      // Check for existing active session with SAME session key (reconnection)
+      const { data: existingSession } = await supabaseClient
         .from('device_connection_sessions')
-        .select('id')
+        .select('id, connected_at')
         .eq('device_id', event.deviceId)
+        .eq('session_key', event.sessionKey)
         .eq('is_active', true)
-        .limit(1);
+        .single();
 
-      // Close any existing active sessions for this device
-      if (existingSessions && existingSessions.length > 0) {
+      // If session exists with same key, just update heartbeat and return
+      if (existingSession) {
+        console.log('♻️ Reconnecting to existing session:', existingSession.id);
+        
         await supabaseClient
           .from('device_connection_sessions')
           .update({
-            is_active: false,
-            disconnected_at: new Date().toISOString(),
-            metadata: { disconnect_reason: 'new_session_started' }
+            last_heartbeat: new Date().toISOString(),
           })
-          .eq('device_id', event.deviceId)
-          .eq('is_active', true);
+          .eq('id', existingSession.id);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            sessionId: existingSession.id,
+            message: 'Reconnected to existing session',
+            connected_at: existingSession.connected_at,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Close other active sessions for this device (different session keys)
+      const { data: otherSessions } = await supabaseClient
+        .from('device_connection_sessions')
+        .select('id, connected_at')
+        .eq('device_id', event.deviceId)
+        .eq('is_active', true)
+        .neq('session_key', event.sessionKey);
+
+      if (otherSessions && otherSessions.length > 0) {
+        console.log(`🔄 Closing ${otherSessions.length} old sessions for device`);
+        
+        const now = new Date();
+        for (const session of otherSessions) {
+          const connectedAt = new Date(session.connected_at);
+          const durationSeconds = Math.floor((now.getTime() - connectedAt.getTime()) / 1000);
+          
+          await supabaseClient
+            .from('device_connection_sessions')
+            .update({
+              is_active: false,
+              disconnected_at: now.toISOString(),
+              total_duration_seconds: durationSeconds,
+              metadata: { disconnect_reason: 'new_session_started' }
+            })
+            .eq('id', session.id);
+        }
       }
 
       // Create new connection session
@@ -65,12 +103,16 @@ serve(async (req) => {
           app_version: event.deviceInfo?.appVersion || '1.0.0',
           battery_level_start: event.deviceInfo?.batteryLevel,
           is_active: true,
+          connected_at: new Date().toISOString(),
           last_heartbeat: new Date().toISOString(),
         })
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('❌ Session creation error:', sessionError);
+        throw sessionError;
+      }
 
       // Log connection activity
       await supabaseClient
@@ -95,7 +137,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           sessionId: newSession.id,
-          message: 'Device connected successfully'
+          message: 'Device connected successfully',
+          connected_at: newSession.connected_at,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -116,6 +159,8 @@ serve(async (req) => {
         const connectedAt = new Date(session.connected_at);
         const now = new Date();
         const durationSeconds = Math.floor((now.getTime() - connectedAt.getTime()) / 1000);
+
+        console.log(`⏱️ Session duration: ${durationSeconds}s (connected: ${session.connected_at}, now: ${now.toISOString()})`);
 
         // Update session as disconnected
         await supabaseClient
@@ -146,6 +191,8 @@ serve(async (req) => {
           });
 
         console.log('✅ Session closed:', session.id, `(${durationSeconds}s)`);
+      } else {
+        console.log('⚠️ No active session found for disconnect event');
       }
 
       return new Response(
@@ -156,30 +203,50 @@ serve(async (req) => {
     
     else if (event.eventType === 'heartbeat') {
       // Update heartbeat timestamp
-      const { error: heartbeatError } = await supabaseClient
+      const { data: updatedSession, error: heartbeatError } = await supabaseClient
         .from('device_connection_sessions')
         .update({
           last_heartbeat: new Date().toISOString(),
         })
         .eq('device_id', event.deviceId)
         .eq('session_key', event.sessionKey)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .select('id')
+        .single();
 
       if (heartbeatError) {
         console.warn('⚠️ Heartbeat update failed:', heartbeatError.message);
+      } else {
+        console.log('💓 Heartbeat recorded for session:', updatedSession?.id);
       }
 
       // Auto-disconnect stale sessions (no heartbeat for 5+ minutes)
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      await supabaseClient
+      const { data: staleSessions } = await supabaseClient
         .from('device_connection_sessions')
-        .update({
-          is_active: false,
-          disconnected_at: new Date().toISOString(),
-          metadata: { disconnect_reason: 'stale_heartbeat' }
-        })
+        .select('id, connected_at')
         .eq('is_active', true)
         .lt('last_heartbeat', fiveMinutesAgo);
+
+      if (staleSessions && staleSessions.length > 0) {
+        console.log(`🧹 Cleaning up ${staleSessions.length} stale sessions`);
+        
+        const now = new Date();
+        for (const stale of staleSessions) {
+          const connectedAt = new Date(stale.connected_at);
+          const durationSeconds = Math.floor((now.getTime() - connectedAt.getTime()) / 1000);
+          
+          await supabaseClient
+            .from('device_connection_sessions')
+            .update({
+              is_active: false,
+              disconnected_at: now.toISOString(),
+              total_duration_seconds: durationSeconds,
+              metadata: { disconnect_reason: 'stale_heartbeat' }
+            })
+            .eq('id', stale.id);
+        }
+      }
 
       return new Response(
         JSON.stringify({ success: true, message: 'Heartbeat recorded' }),
