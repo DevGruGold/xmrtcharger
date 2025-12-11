@@ -9,7 +9,8 @@ const corsHeaders = {
 interface ConnectionEvent {
   deviceId: string;
   sessionKey: string;
-  eventType: 'connect' | 'disconnect' | 'heartbeat';
+  action?: 'connect' | 'disconnect' | 'heartbeat';
+  eventType?: 'connect' | 'disconnect' | 'heartbeat';
   deviceInfo?: {
     ipAddress?: string;
     userAgent?: string;
@@ -29,10 +30,25 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const event: ConnectionEvent = await req.json();
-    console.log('📡 Connection event:', event.eventType, 'for device:', event.deviceId, 'session:', event.sessionKey);
+    const body = await req.json();
+    // Support both 'action' and 'eventType' for backwards compatibility
+    const event: ConnectionEvent = {
+      ...body,
+      action: body.action || body.eventType,
+    };
+    
+    const eventType = event.action || event.eventType;
+    
+    if (!eventType) {
+      return new Response(
+        JSON.stringify({ error: 'Missing action parameter', valid_actions: ['connect', 'disconnect', 'heartbeat'] }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    console.log('📡 Connection event:', eventType, 'for device:', event.deviceId, 'session:', event.sessionKey);
 
-    if (event.eventType === 'connect') {
+    if (eventType === 'connect') {
       // Check for existing active session with SAME session key (reconnection)
       const { data: existingSession } = await supabaseClient
         .from('device_connection_sessions')
@@ -144,7 +160,7 @@ serve(async (req) => {
       );
     } 
     
-    else if (event.eventType === 'disconnect') {
+    else if (eventType === 'disconnect') {
       // Find active session
       const { data: session } = await supabaseClient
         .from('device_connection_sessions')
@@ -201,7 +217,7 @@ serve(async (req) => {
       );
     } 
     
-    else if (event.eventType === 'heartbeat') {
+    else if (eventType === 'heartbeat') {
       // Update heartbeat timestamp
       const { data: updatedSession, error: heartbeatError } = await supabaseClient
         .from('device_connection_sessions')

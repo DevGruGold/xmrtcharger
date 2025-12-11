@@ -245,7 +245,7 @@ export const useDeviceConnection = () => {
         body: {
           deviceId: deviceUUID,
           sessionKey,
-          eventType: 'connect',
+          action: 'connect',
           deviceInfo: {
             ipAddress: null,
             userAgent: navigator.userAgent,
@@ -304,7 +304,7 @@ export const useDeviceConnection = () => {
         body: {
           deviceId: connectionInfo.deviceId,
           sessionKey: connectionInfo.sessionKey,
-          eventType: 'heartbeat',
+          action: 'heartbeat',
         }
       });
       
@@ -325,7 +325,7 @@ export const useDeviceConnection = () => {
         body: {
           deviceId: connectionInfo.deviceId,
           sessionKey: connectionInfo.sessionKey,
-          eventType: 'disconnect',
+          action: 'disconnect',
         }
       });
       
