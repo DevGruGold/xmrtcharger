@@ -13,6 +13,28 @@ export interface DeviceConnectionInfo {
 
 const STORAGE_KEY = 'xmrt_session_key';
 const DEVICE_ID_KEY = 'xmrt_device_id';
+const RESET_VERSION_KEY = 'xmrt_reset_version';
+const CURRENT_RESET_VERSION = '2'; // Increment this to force reset
+
+/**
+ * Check if we need to clear local storage (after DB reset)
+ */
+const checkAndClearStorageIfNeeded = () => {
+  try {
+    const storedVersion = localStorage.getItem(RESET_VERSION_KEY);
+    if (storedVersion !== CURRENT_RESET_VERSION) {
+      console.log('🔄 DB reset detected, clearing local storage...');
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(DEVICE_ID_KEY);
+      localStorage.removeItem('xmrt_cached_ip');
+      localStorage.setItem(RESET_VERSION_KEY, CURRENT_RESET_VERSION);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
 
 /**
  * Generates a stable device fingerprint based on available device characteristics
@@ -90,6 +112,8 @@ const cacheDeviceId = (deviceId: string) => {
  */
 const registerDevice = async (fingerprint: string, deviceInfo: any): Promise<string | null> => {
   try {
+    console.log('🔍 Looking for device with fingerprint:', fingerprint);
+    
     // Check if device exists
     const { data: existingDevice } = await supabase
       .from('devices')
@@ -98,10 +122,12 @@ const registerDevice = async (fingerprint: string, deviceInfo: any): Promise<str
       .single();
 
     if (existingDevice) {
+      console.log('✅ Found existing device:', existingDevice.id);
       cacheDeviceId(existingDevice.id);
       return existingDevice.id;
     }
 
+    console.log('📱 Creating new device...');
     // Create new device
     const { data: newDevice, error } = await supabase
       .from('devices')
@@ -116,17 +142,21 @@ const registerDevice = async (fingerprint: string, deviceInfo: any): Promise<str
       .single();
 
     if (error) {
-      console.error('Failed to register device:', error);
+      console.error('❌ Failed to register device:', error);
       return null;
     }
 
+    console.log('✅ New device created:', newDevice.id);
     cacheDeviceId(newDevice.id);
     return newDevice.id;
   } catch (error) {
-    console.error('Error registering device:', error);
+    console.error('❌ Error registering device:', error);
     return null;
   }
 };
+
+// Check and clear storage on module load
+checkAndClearStorageIfNeeded();
 
 /**
  * Hook to manage device connection lifecycle with XMRT-Charger monitoring system
@@ -143,6 +173,13 @@ export const useDeviceConnection = () => {
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isConnectingRef = useRef(false);
   const deviceInitializedRef = useRef(false);
+  const lastHeartbeatRef = useRef<number>(0);
+  
+  // Keep connection info in a ref for use in intervals/callbacks
+  const connectionInfoRef = useRef(connectionInfo);
+  useEffect(() => {
+    connectionInfoRef.current = connectionInfo;
+  }, [connectionInfo]);
 
   /**
    * Check for existing active session
@@ -275,6 +312,8 @@ export const useDeviceConnection = () => {
         };
         
         setConnectionInfo(newConnectionInfo);
+        // Also update ref immediately so heartbeat works
+        connectionInfoRef.current = newConnectionInfo;
         
         // Save to offline storage
         await offlineStorage.saveDeviceState({
@@ -285,6 +324,9 @@ export const useDeviceConnection = () => {
         
         deviceInitializedRef.current = true;
         console.log('✅ Device connected successfully:', data.sessionId);
+        
+        // Send first heartbeat immediately after connection
+        setTimeout(() => sendHeartbeat(), 1000);
       }
     } catch (error) {
       console.error('❌ Error connecting device:', error);
@@ -297,22 +339,35 @@ export const useDeviceConnection = () => {
    * Send heartbeat to keep connection alive
    */
   const sendHeartbeat = useCallback(async () => {
-    if (!connectionInfo.isConnected || !connectionInfo.deviceId) return;
+    const info = connectionInfoRef.current;
+    
+    if (!info.isConnected || !info.deviceId) {
+      console.log('⏸️ Heartbeat skipped - not connected yet', { isConnected: info.isConnected, deviceId: info.deviceId });
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastHeartbeat = now - lastHeartbeatRef.current;
 
     try {
-      await supabase.functions.invoke('monitor-device-connections', {
+      const { data, error } = await supabase.functions.invoke('monitor-device-connections', {
         body: {
-          deviceId: connectionInfo.deviceId,
-          sessionKey: connectionInfo.sessionKey,
+          deviceId: info.deviceId,
+          sessionKey: info.sessionKey,
           action: 'heartbeat',
         }
       });
       
-      console.log('💓 Heartbeat sent');
+      if (error) {
+        console.error('❌ Heartbeat failed:', error);
+      } else {
+        lastHeartbeatRef.current = now;
+        console.log(`💓 Heartbeat sent (${Math.floor(timeSinceLastHeartbeat / 1000)}s since last) - Session: ${info.sessionId}`);
+      }
     } catch (error) {
-      console.error('❌ Heartbeat failed:', error);
+      console.error('❌ Heartbeat error:', error);
     }
-  }, [connectionInfo.isConnected, connectionInfo.deviceId, connectionInfo.sessionKey]);
+  }, []);
 
   /**
    * Send disconnect event
@@ -380,14 +435,20 @@ export const useDeviceConnection = () => {
       sendHeartbeat();
     }, 30000);
 
+    // Also send first heartbeat after 5 seconds to verify connection
+    const initialHeartbeat = setTimeout(() => {
+      sendHeartbeat();
+    }, 5000);
+
     // Disconnect on unmount
     return () => {
       if (heartbeatIntervalRef.current) {
         clearInterval(heartbeatIntervalRef.current);
       }
+      clearTimeout(initialHeartbeat);
       sendDisconnectEvent();
     };
-  }, [sendConnectEvent, sendHeartbeat, sendDisconnectEvent]);
+  }, []); // Empty deps - sendHeartbeat now uses connectionInfoRef internally
 
   return {
     ...connectionInfo,
