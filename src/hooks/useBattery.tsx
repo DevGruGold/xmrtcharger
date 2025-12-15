@@ -26,9 +26,9 @@ export const useBattery = (options?: UseBatteryOptions) => {
   const [drainAnalysis, setDrainAnalysis] = useState<DrainAnalysis | null>(null);
   const { toast } = useToast();
   
-  // Use crypto.randomUUID() as fallback to ensure we always have valid UUIDs
-  const deviceId = options?.deviceId || crypto.randomUUID();
-  const sessionId = options?.sessionId || crypto.randomUUID();
+  // Use provided IDs or null - don't generate random UUIDs that don't exist in DB
+  const deviceId = options?.deviceId || null;
+  const sessionId = options?.sessionId || null;
 
   // Detect device info on mount
   useEffect(() => {
@@ -73,18 +73,20 @@ export const useBattery = (options?: UseBatteryOptions) => {
               const analysis = await analyzer.analyzeDrain(dischargeRate);
               setDrainAnalysis(analysis);
 
-              // Record to Supabase with drain analysis
-              await recordBatteryReading(
-                deviceId,
-                sessionId,
-                currentLevel,
-                battery.charging,
-                battery.chargingTime === Infinity ? null : battery.chargingTime,
-                battery.dischargingTime === Infinity ? null : battery.dischargingTime,
-                chargingSpeed,
-                undefined,
-                { drain_analysis: analysis }
-              );
+              // Only record to Supabase if we have a valid deviceId
+              if (deviceId) {
+                await recordBatteryReading(
+                  deviceId,
+                  sessionId,
+                  currentLevel,
+                  battery.charging,
+                  battery.chargingTime === Infinity ? null : battery.chargingTime,
+                  battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+                  chargingSpeed,
+                  undefined,
+                  { drain_analysis: analysis }
+                );
+              }
 
               // Log rapid discharge activity
               if (options?.logActivity) {
@@ -187,20 +189,22 @@ export const useBattery = (options?: UseBatteryOptions) => {
           const currentLevel = battery.level * 100;
           const chargingSpeed = battery.charging ? determineChargingSpeed(battery.chargingTime) : undefined;
           
-          try {
-            // Try Supabase first
-            await recordBatteryReading(
-              deviceId,
-              sessionId,
-              currentLevel,
-              battery.charging,
-              battery.chargingTime === Infinity ? null : battery.chargingTime,
-              battery.dischargingTime === Infinity ? null : battery.dischargingTime,
-              chargingSpeed,
-              undefined,
-              { periodic_reading: true }
-            );
-          } catch (error) {
+          // Only record if we have a valid deviceId
+          if (deviceId) {
+            try {
+              // Try Supabase first
+              await recordBatteryReading(
+                deviceId,
+                sessionId,
+                currentLevel,
+                battery.charging,
+                battery.chargingTime === Infinity ? null : battery.chargingTime,
+                battery.dischargingTime === Infinity ? null : battery.dischargingTime,
+                chargingSpeed,
+                undefined,
+                { periodic_reading: true }
+              );
+            } catch (error) {
             // Fall back to offline storage
             console.log('📱 Saving battery reading offline');
             await offlineStorage.saveBatteryReading({
@@ -227,9 +231,8 @@ export const useBattery = (options?: UseBatteryOptions) => {
                 metadata: { periodic_reading: true }
               }
             });
+            }
           }
-          
-          // Log periodic reading activity
           if (options?.logActivity) {
             options.logActivity(
               'battery_reading_recorded',
