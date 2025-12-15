@@ -21,7 +21,6 @@ const Index = () => {
   const connection = useDeviceConnection();
   const { batteryStatus, deviceInfo } = useBattery({
     deviceId: connection.deviceId,
-    sessionId: connection.sessionId || undefined,
     logActivity: connection.logActivity,
   });
 

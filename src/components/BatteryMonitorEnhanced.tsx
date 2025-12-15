@@ -35,7 +35,6 @@ export const BatteryMonitorEnhanced = () => {
   const connection = useDeviceConnection();
   const { batteryStatus, deviceInfo, error } = useBattery({
     deviceId: connection.deviceId,
-    sessionId: connection.sessionId || undefined,
     logActivity: connection.logActivity,
   });
   const [selectedMode, setSelectedMode] = useState<ChargingMode>('turbo');
