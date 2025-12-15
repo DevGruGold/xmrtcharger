@@ -36,6 +36,14 @@ serve(async (req) => {
       metadata 
     } = await req.json();
 
+    console.log('📋 record-battery-data payload:', {
+      deviceId,
+      sessionId,
+      sessionIdType: typeof sessionId,
+      batteryLevel,
+      isCharging,
+    });
+
     // Validate UUIDs
     if (!isValidUUID(deviceId)) {
       console.error('Invalid deviceId format:', deviceId);
@@ -59,12 +67,36 @@ serve(async (req) => {
       );
     }
 
+    // Normalize / validate sessionId (clients may send a stale connection session UUID)
+    let safeSessionId: string | null = null;
+
+    if (sessionId === undefined || sessionId === null || sessionId === '') {
+      safeSessionId = null;
+    } else if (typeof sessionId === 'string' && isValidUUID(sessionId)) {
+      const { data: sessionRow, error: sessionLookupError } = await supabaseClient
+        .from('battery_sessions')
+        .select('id')
+        .eq('id', sessionId)
+        .maybeSingle();
+
+      if (sessionLookupError) {
+        console.error('Error looking up battery_session:', sessionLookupError);
+        // Fail open to null so we can still record the reading
+        safeSessionId = null;
+      } else if (sessionRow?.id) {
+        safeSessionId = sessionId;
+      } else {
+        console.warn('Dropping unknown session_id (no matching battery_sessions row):', sessionId);
+        safeSessionId = null;
+      }
+    }
+
     // Record battery reading
     const { error: readingError } = await supabaseClient
       .from('battery_readings')
       .insert({
         device_id: deviceId,
-        session_id: sessionId || null,
+        session_id: safeSessionId,
         battery_level: batteryLevel,
         is_charging: isCharging,
         charging_time_remaining: chargingTimeRemaining,
