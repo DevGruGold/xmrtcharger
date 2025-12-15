@@ -1392,7 +1392,9 @@ export type Database = {
           acquisition_stage: string | null
           conversion_event: string | null
           created_at: string
+          device_fingerprint: string | null
           id: string
+          ip_address: unknown
           is_active: boolean | null
           last_qualification_at: string | null
           lead_score: number | null
@@ -1403,13 +1405,16 @@ export type Database = {
           tier_preference: string | null
           title: string | null
           updated_at: string
+          user_agent: string | null
           user_profile_id: string | null
         }
         Insert: {
           acquisition_stage?: string | null
           conversion_event?: string | null
           created_at?: string
+          device_fingerprint?: string | null
           id?: string
+          ip_address?: unknown
           is_active?: boolean | null
           last_qualification_at?: string | null
           lead_score?: number | null
@@ -1420,13 +1425,16 @@ export type Database = {
           tier_preference?: string | null
           title?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_profile_id?: string | null
         }
         Update: {
           acquisition_stage?: string | null
           conversion_event?: string | null
           created_at?: string
+          device_fingerprint?: string | null
           id?: string
+          ip_address?: unknown
           is_active?: boolean | null
           last_qualification_at?: string | null
           lead_score?: number | null
@@ -1437,6 +1445,7 @@ export type Database = {
           tier_preference?: string | null
           title?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_profile_id?: string | null
         }
         Relationships: [
@@ -1563,6 +1572,72 @@ export type Database = {
           session_key?: string | null
           tier_requested?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cron_registry: {
+        Row: {
+          avg_execution_ms: number | null
+          created_at: string | null
+          description: string | null
+          failure_count: number | null
+          function_name: string
+          github_workflow_file: string | null
+          id: string
+          is_active: boolean | null
+          job_name: string
+          last_run_at: string | null
+          last_status: string | null
+          owner_agent: string | null
+          payload: Json | null
+          pg_cron_jobid: number | null
+          platform: string
+          run_count: number | null
+          schedule: string
+          updated_at: string | null
+          vercel_config_path: string | null
+        }
+        Insert: {
+          avg_execution_ms?: number | null
+          created_at?: string | null
+          description?: string | null
+          failure_count?: number | null
+          function_name: string
+          github_workflow_file?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_name: string
+          last_run_at?: string | null
+          last_status?: string | null
+          owner_agent?: string | null
+          payload?: Json | null
+          pg_cron_jobid?: number | null
+          platform: string
+          run_count?: number | null
+          schedule: string
+          updated_at?: string | null
+          vercel_config_path?: string | null
+        }
+        Update: {
+          avg_execution_ms?: number | null
+          created_at?: string | null
+          description?: string | null
+          failure_count?: number | null
+          function_name?: string
+          github_workflow_file?: string | null
+          id?: string
+          is_active?: boolean | null
+          job_name?: string
+          last_run_at?: string | null
+          last_status?: string | null
+          owner_agent?: string | null
+          payload?: Json | null
+          pg_cron_jobid?: number | null
+          platform?: string
+          run_count?: number | null
+          schedule?: string
+          updated_at?: string | null
+          vercel_config_path?: string | null
         }
         Relationships: []
       }
@@ -2423,6 +2498,7 @@ export type Database = {
           deployment_id: string | null
           deployment_version: string | null
           error_message: string | null
+          execution_source: string | null
           execution_time_ms: number | null
           executive_name: string | null
           function_hash: string | null
@@ -2447,6 +2523,7 @@ export type Database = {
           deployment_id?: string | null
           deployment_version?: string | null
           error_message?: string | null
+          execution_source?: string | null
           execution_time_ms?: number | null
           executive_name?: string | null
           function_hash?: string | null
@@ -2471,6 +2548,7 @@ export type Database = {
           deployment_id?: string | null
           deployment_version?: string | null
           error_message?: string | null
+          execution_source?: string | null
           execution_time_ms?: number | null
           executive_name?: string | null
           function_hash?: string | null
@@ -3446,6 +3524,112 @@ export type Database = {
           },
         ]
       }
+      ip_correlation_events: {
+        Row: {
+          consent_given: boolean | null
+          consent_timestamp: string | null
+          correlation_confidence: number | null
+          correlation_factors: Json | null
+          created_at: string | null
+          device_fingerprint: string | null
+          id: string
+          ip_address: unknown
+          observed_at: string | null
+          source_id: string
+          source_session_key: string | null
+          source_type: string
+          user_agent: string | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          consent_given?: boolean | null
+          consent_timestamp?: string | null
+          correlation_confidence?: number | null
+          correlation_factors?: Json | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address: unknown
+          observed_at?: string | null
+          source_id?: string
+          source_session_key?: string | null
+          source_type: string
+          user_agent?: string | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          consent_given?: boolean | null
+          consent_timestamp?: string | null
+          correlation_confidence?: number | null
+          correlation_factors?: Json | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown
+          observed_at?: string | null
+          source_id?: string
+          source_session_key?: string | null
+          source_type?: string
+          user_agent?: string | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_correlation_events_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ip_correlation_matches: {
+        Row: {
+          chat_session_id: string | null
+          device_session_id: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown
+          match_confidence: number | null
+          match_factors: Json | null
+          matched_at: string | null
+          user_acknowledged: boolean | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          chat_session_id?: string | null
+          device_session_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          match_confidence?: number | null
+          match_factors?: Json | null
+          matched_at?: string | null
+          user_acknowledged?: boolean | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          chat_session_id?: string | null
+          device_session_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          match_confidence?: number | null
+          match_factors?: Json | null
+          matched_at?: string | null
+          user_acknowledged?: boolean | null
+          user_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_correlation_matches_user_profile_id_fkey"
+            columns: ["user_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_attempts: {
         Row: {
           error: string | null
@@ -4028,6 +4212,57 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_connections: {
+        Row: {
+          access_token: string | null
+          account_email: string | null
+          connected_at: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_verified: string | null
+          metadata: Json | null
+          provider: string
+          refresh_token: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          account_email?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_verified?: string | null
+          metadata?: Json | null
+          provider: string
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          account_email?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_verified?: string | null
+          metadata?: Json | null
+          provider?: string
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       onboarding_checkpoints: {
         Row: {
           api_key: string
@@ -4259,6 +4494,75 @@ export type Database = {
           resolved_at?: string | null
           severity?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string
+          email_verified: boolean | null
+          full_name: string | null
+          github_contributions_count: number | null
+          github_username: string | null
+          id: string
+          is_active: boolean | null
+          last_login_at: string | null
+          linked_worker_ids: string[] | null
+          timezone: string | null
+          total_mining_shares: number | null
+          total_pop_points: number | null
+          total_xmrt_earned: number | null
+          twitter_handle: string | null
+          updated_at: string | null
+          wallet_address: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email: string
+          email_verified?: boolean | null
+          full_name?: string | null
+          github_contributions_count?: number | null
+          github_username?: string | null
+          id: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          linked_worker_ids?: string[] | null
+          timezone?: string | null
+          total_mining_shares?: number | null
+          total_pop_points?: number | null
+          total_xmrt_earned?: number | null
+          twitter_handle?: string | null
+          updated_at?: string | null
+          wallet_address?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string
+          email_verified?: boolean | null
+          full_name?: string | null
+          github_contributions_count?: number | null
+          github_username?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
+          linked_worker_ids?: string[] | null
+          timezone?: string | null
+          total_mining_shares?: number | null
+          total_pop_points?: number | null
+          total_xmrt_earned?: number | null
+          twitter_handle?: string | null
+          updated_at?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -5703,6 +6007,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_worker_mappings: {
         Row: {
           alias: string | null
@@ -7140,6 +7468,7 @@ export type Database = {
           name: string
           start_time: string
           status: string
+          template_name: string | null
           total_steps: number
           updated_at: string
           workflow_id: string
@@ -7156,6 +7485,7 @@ export type Database = {
           name: string
           start_time?: string
           status?: string
+          template_name?: string | null
           total_steps: number
           updated_at?: string
           workflow_id: string
@@ -7172,6 +7502,7 @@ export type Database = {
           name?: string
           start_time?: string
           status?: string
+          template_name?: string | null
           total_steps?: number
           updated_at?: string
           workflow_id?: string
@@ -8197,6 +8528,7 @@ export type Database = {
         Args: { request_metadata: Json; session_uuid: string }
         Returns: boolean
       }
+      cleanup_stale_device_sessions: { Args: never; Returns: Json }
       complete_job: {
         Args: { p_job_id: number; p_lease_token: string; p_logs?: string }
         Returns: undefined
@@ -8340,6 +8672,11 @@ export type Database = {
           user_profile_id: string
         }[]
       }
+      get_user_earnings: { Args: { user_profile_id: string }; Returns: Json }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
       get_xmrt_charger_leaderboard: {
         Args: { limit_count?: number }
         Returns: {
@@ -8351,6 +8688,13 @@ export type Database = {
           total_charging_sessions: number
           total_pop_points: number
         }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       http_post_wrap: {
         Args: { p_body?: Json; p_headers?: Json; p_url: string }
@@ -8467,6 +8811,8 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      is_admin_or_above: { Args: { _user_id: string }; Returns: boolean }
+      is_superadmin: { Args: { _user_id: string }; Returns: boolean }
       is_valid_jsonb: { Args: { v: Json }; Returns: boolean }
       jsonb_shallow_diff: { Args: { new_j: Json; old_j: Json }; Returns: Json }
       lease_job: {
@@ -8662,6 +9008,7 @@ export type Database = {
         Returns: string
       }
       run_opportunity_scanner: { Args: never; Returns: undefined }
+      safe_refresh_recent_messages: { Args: never; Returns: undefined }
       service_status_change_type: {
         Args: { new_j: Json; old_j: Json }
         Returns: string
@@ -8741,6 +9088,7 @@ export type Database = {
         | "device"
         | "generic"
       agent_status: "IDLE" | "BUSY" | "OFFLINE" | "ARCHIVED" | "ERROR"
+      app_role: "user" | "contributor" | "moderator" | "admin" | "superadmin"
       command_status:
         | "pending"
         | "sent"
@@ -8956,6 +9304,7 @@ export const Constants = {
         "generic",
       ],
       agent_status: ["IDLE", "BUSY", "OFFLINE", "ARCHIVED", "ERROR"],
+      app_role: ["user", "contributor", "moderator", "admin", "superadmin"],
       command_status: [
         "pending",
         "sent",
