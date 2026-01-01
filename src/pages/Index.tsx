@@ -15,6 +15,8 @@ import { useBattery } from "@/hooks/useBattery";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { PRODUCTS } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { History, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -88,6 +90,24 @@ const Index = () => {
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Get your XMRT Charger and accessories. Start mining Monero while you charge.
               </p>
+            </div>
+
+            {/* Pre-release Pricing Banner */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30">
+                <CardContent className="p-6 text-center">
+                  <Badge variant="destructive" className="mb-3 text-sm font-bold">
+                    LIMITED TIME PRE-RELEASE OFFER
+                  </Badge>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    50% Off All Products
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Get early access to XMRT Charger technology at half the shelf price. 
+                    Pre-release pricing ends when we launch!
+                  </p>
+                </CardContent>
+              </Card>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
