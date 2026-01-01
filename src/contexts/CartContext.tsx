@@ -5,6 +5,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  originalPrice?: number;
   features: string[];
 }
 
@@ -30,6 +31,7 @@ export const PRODUCTS: Product[] = [
     name: 'XMRT Charger',
     description: 'Meshnode Cryptomining Supercharger with built-in Monero mining',
     price: 139.00,
+    originalPrice: 278.00,
     features: ['60-80W Charging', 'Built-in Mining', 'Wi-Fi + LoRa', 'Eliza AI']
   },
   {
@@ -37,6 +39,7 @@ export const PRODUCTS: Product[] = [
     name: '12ft Supercharging Cable',
     description: 'Premium 12-foot USB-C to USB-C 100W charging cable',
     price: 29.00,
+    originalPrice: 58.00,
     features: ['100W Power Delivery', 'E-Mark Chip', 'Braided Nylon']
   }
 ];
