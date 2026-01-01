@@ -62,7 +62,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           ))}
         </div>
         
-        <div className="text-center">
+        <div className="text-center space-y-2">
+          {product.originalPrice && (
+            <div className="space-y-1">
+              <Badge variant="destructive" className="text-xs font-bold">
+                50% OFF PRE-RELEASE
+              </Badge>
+              <p className="text-sm text-muted-foreground line-through">
+                ${product.originalPrice.toFixed(2)}
+              </p>
+            </div>
+          )}
           <p className="text-3xl font-bold text-foreground">
             ${product.price.toFixed(2)}
           </p>

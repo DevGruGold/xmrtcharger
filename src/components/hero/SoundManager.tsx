@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface SoundManagerProps {
   onRewardEarned?: boolean;
@@ -77,15 +75,6 @@ export const SoundManager = ({ onRewardEarned }: SoundManagerProps) => {
     osc3.stop(now + 0.5);
   };
 
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setIsMuted(!isMuted)}
-      className="fixed top-4 right-4 z-50"
-      title={isMuted ? 'Unmute sounds' : 'Mute sounds'}
-    >
-      {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-    </Button>
-  );
+  // Sound manager now operates silently without UI controls
+  return null;
 };
