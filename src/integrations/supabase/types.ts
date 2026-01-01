@@ -95,7 +95,21 @@ export type Database = {
             foreignKeyName: "agent_clones_child_agent_id_fkey"
             columns: ["child_agent_id"]
             isOneToOne: true
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_clones_child_agent_id_fkey"
+            columns: ["child_agent_id"]
+            isOneToOne: true
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_clones_parent_agent_id_fkey"
+            columns: ["parent_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
             referencedColumns: ["id"]
           },
           {
@@ -136,6 +150,13 @@ export type Database = {
           time_window?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_performance_metrics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_performance_metrics_agent_id_fkey"
             columns: ["agent_id"]
@@ -207,6 +228,13 @@ export type Database = {
           tasks_completed_in_area?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "agent_specializations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "agent_specializations_agent_id_fkey"
             columns: ["agent_id"]
@@ -292,6 +320,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_provider_usage_log: {
+        Row: {
+          cost_usd: number | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          model: string | null
+          occurred_at: string | null
+          provider: string
+          request_id: string | null
+          status_code: number | null
+          success: boolean | null
+          tokens_completion: number | null
+          tokens_prompt: number | null
+          tokens_total: number | null
+          user_id: string | null
+        }
+        Insert: {
+          cost_usd?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          model?: string | null
+          occurred_at?: string | null
+          provider: string
+          request_id?: string | null
+          status_code?: number | null
+          success?: boolean | null
+          tokens_completion?: number | null
+          tokens_prompt?: number | null
+          tokens_total?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          cost_usd?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          model?: string | null
+          occurred_at?: string | null
+          provider?: string
+          request_id?: string | null
+          status_code?: number | null
+          success?: boolean | null
+          tokens_completion?: number | null
+          tokens_prompt?: number | null
+          tokens_total?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       anomaly_resolutions: {
         Row: {
@@ -416,6 +495,87 @@ export type Database = {
         Update: {
           key?: string
           value?: string
+        }
+        Relationships: []
+      }
+      auth_service_logs: {
+        Row: {
+          component: string | null
+          created_at: string
+          error_details: string | null
+          event_type: string
+          id: string
+          ip_address: unknown
+          level: string
+          message: string
+          metadata: Json | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component?: string | null
+          created_at?: string
+          error_details?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          level: string
+          message: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component?: string | null
+          created_at?: string
+          error_details?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          level?: string
+          message?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      auth_service_restarts: {
+        Row: {
+          cpu_percent: number | null
+          created_at: string
+          db_connections: number | null
+          error_count: number | null
+          id: string
+          logs_before_restart: number | null
+          memory_mb: number | null
+          restart_reason: string | null
+          uptime_seconds: number | null
+        }
+        Insert: {
+          cpu_percent?: number | null
+          created_at?: string
+          db_connections?: number | null
+          error_count?: number | null
+          id?: string
+          logs_before_restart?: number | null
+          memory_mb?: number | null
+          restart_reason?: string | null
+          uptime_seconds?: number | null
+        }
+        Update: {
+          cpu_percent?: number | null
+          created_at?: string
+          db_connections?: number | null
+          error_count?: number | null
+          id?: string
+          logs_before_restart?: number | null
+          memory_mb?: number | null
+          restart_reason?: string | null
+          uptime_seconds?: number | null
         }
         Relationships: []
       }
@@ -583,6 +743,20 @@ export type Database = {
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "battery_health_snapshots_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "battery_health_snapshots_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
         ]
       }
       battery_readings: {
@@ -649,6 +823,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "devices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battery_readings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "battery_readings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
           },
           {
             foreignKeyName: "battery_readings_session_id_fkey"
@@ -736,6 +924,20 @@ export type Database = {
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "battery_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "battery_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
         ]
       }
       charging_sessions: {
@@ -808,6 +1010,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "devices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "charging_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "charging_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
           },
           {
             foreignKeyName: "charging_sessions_session_id_fkey"
@@ -1296,6 +1512,54 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          address: string
+          created_at: string | null
+          current_supply: number | null
+          deployed_at: string | null
+          deployer_address: string | null
+          id: string
+          max_supply: number | null
+          metadata: Json | null
+          name: string
+          network: string
+          token_standard: string | null
+          updated_at: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          current_supply?: number | null
+          deployed_at?: string | null
+          deployer_address?: string | null
+          id?: string
+          max_supply?: number | null
+          metadata?: Json | null
+          name: string
+          network: string
+          token_standard?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          current_supply?: number | null
+          deployed_at?: string | null
+          deployer_address?: string | null
+          id?: string
+          max_supply?: number | null
+          metadata?: Json | null
+          name?: string
+          network?: string
+          token_standard?: string | null
+          updated_at?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       conversation_history: {
         Row: {
           conversation_title: string | null
@@ -1641,6 +1905,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_repo_state_sync: {
+        Row: {
+          conflict_data: Json | null
+          created_at: string
+          id: string
+          last_sync_at: string
+          metadata: Json | null
+          repo_name: string
+          state_key: string
+          state_value: Json
+          sync_status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          conflict_data?: Json | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string
+          metadata?: Json | null
+          repo_name: string
+          state_key: string
+          state_value: Json
+          sync_status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          conflict_data?: Json | null
+          created_at?: string
+          id?: string
+          last_sync_at?: string
+          metadata?: Json | null
+          repo_name?: string
+          state_key?: string
+          state_value?: Json
+          sync_status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       dao_members: {
         Row: {
           created_at: string
@@ -1752,6 +2058,13 @@ export type Database = {
             foreignKeyName: "decisions_agent_id_fkey"
             columns: ["agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decisions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
             referencedColumns: ["id"]
           },
@@ -1794,7 +2107,21 @@ export type Database = {
             foreignKeyName: "delegations_delegatee_agent_id_fkey"
             columns: ["delegatee_agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegations_delegatee_agent_id_fkey"
+            columns: ["delegatee_agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegations_delegator_agent_id_fkey"
+            columns: ["delegator_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
             referencedColumns: ["id"]
           },
           {
@@ -1924,6 +2251,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "device_activity_log_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "device_activity_log_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
             foreignKeyName: "device_activity_log_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -1944,10 +2285,18 @@ export type Database = {
             referencedRelation: "device_connection_status"
             referencedColumns: ["session_id"]
           },
+          {
+            foreignKeyName: "device_activity_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["session_id"]
+          },
         ]
       }
       device_connection_sessions: {
         Row: {
+          activities_count: number | null
           app_version: string | null
           battery_level_current: number | null
           battery_level_end: number | null
@@ -1963,13 +2312,16 @@ export type Database = {
           ip_address: unknown
           is_active: boolean | null
           last_heartbeat: string
+          location_data: Json | null
           metadata: Json | null
+          pop_points_earned: number | null
           session_key: string
           total_duration_seconds: number | null
           updated_at: string | null
           user_agent: string | null
         }
         Insert: {
+          activities_count?: number | null
           app_version?: string | null
           battery_level_current?: number | null
           battery_level_end?: number | null
@@ -1985,13 +2337,16 @@ export type Database = {
           ip_address?: unknown
           is_active?: boolean | null
           last_heartbeat?: string
+          location_data?: Json | null
           metadata?: Json | null
+          pop_points_earned?: number | null
           session_key: string
           total_duration_seconds?: number | null
           updated_at?: string | null
           user_agent?: string | null
         }
         Update: {
+          activities_count?: number | null
           app_version?: string | null
           battery_level_current?: number | null
           battery_level_end?: number | null
@@ -2007,7 +2362,9 @@ export type Database = {
           ip_address?: unknown
           is_active?: boolean | null
           last_heartbeat?: string
+          location_data?: Json | null
           metadata?: Json | null
+          pop_points_earned?: number | null
           session_key?: string
           total_duration_seconds?: number | null
           updated_at?: string | null
@@ -2034,6 +2391,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "devices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_connection_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "device_connection_sessions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
           },
         ]
       }
@@ -2140,8 +2511,10 @@ export type Database = {
         Row: {
           associated_at: string
           association_method: string | null
+          claim_method: string | null
           created_at: string
           device_id: string
+          device_info: Json | null
           id: string
           is_active: boolean | null
           is_primary_device: boolean | null
@@ -2149,14 +2522,17 @@ export type Database = {
           mining_while_charging: boolean | null
           total_sessions_while_mining: number | null
           updated_at: string
+          user_id: string | null
           wallet_address: string | null
           worker_id: string
         }
         Insert: {
           associated_at?: string
           association_method?: string | null
+          claim_method?: string | null
           created_at?: string
           device_id: string
+          device_info?: Json | null
           id?: string
           is_active?: boolean | null
           is_primary_device?: boolean | null
@@ -2164,14 +2540,17 @@ export type Database = {
           mining_while_charging?: boolean | null
           total_sessions_while_mining?: number | null
           updated_at?: string
+          user_id?: string | null
           wallet_address?: string | null
           worker_id: string
         }
         Update: {
           associated_at?: string
           association_method?: string | null
+          claim_method?: string | null
           created_at?: string
           device_id?: string
+          device_info?: Json | null
           id?: string
           is_active?: boolean | null
           is_primary_device?: boolean | null
@@ -2179,6 +2558,7 @@ export type Database = {
           mining_while_charging?: boolean | null
           total_sessions_while_mining?: number | null
           updated_at?: string
+          user_id?: string | null
           wallet_address?: string | null
           worker_id?: string
         }
@@ -2205,6 +2585,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "device_miner_associations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: true
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "device_miner_associations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: true
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "device_miner_associations_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "treasury_stats"
+            referencedColumns: ["wallet_address"]
+          },
+          {
             foreignKeyName: "device_miner_associations_wallet_address_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
@@ -2216,16 +2617,23 @@ export type Database = {
       devices: {
         Row: {
           browser: string | null
+          claim_code_expires_at: string | null
+          claim_verification_code: string | null
+          claimed_at: string | null
+          claimed_by: string | null
           created_at: string
+          detected_device_category: string | null
           device_fingerprint: string
           device_type: string | null
           first_seen_at: string
           id: string
           ip_addresses: Json | null
           is_active: boolean | null
+          last_known_location: Json | null
           last_seen_at: string
           metadata: Json | null
           os: string | null
+          screen_info: Json | null
           session_keys: string[] | null
           updated_at: string
           wallet_address: string | null
@@ -2233,16 +2641,23 @@ export type Database = {
         }
         Insert: {
           browser?: string | null
+          claim_code_expires_at?: string | null
+          claim_verification_code?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           created_at?: string
+          detected_device_category?: string | null
           device_fingerprint: string
           device_type?: string | null
           first_seen_at?: string
           id?: string
           ip_addresses?: Json | null
           is_active?: boolean | null
+          last_known_location?: Json | null
           last_seen_at?: string
           metadata?: Json | null
           os?: string | null
+          screen_info?: Json | null
           session_keys?: string[] | null
           updated_at?: string
           wallet_address?: string | null
@@ -2250,20 +2665,113 @@ export type Database = {
         }
         Update: {
           browser?: string | null
+          claim_code_expires_at?: string | null
+          claim_verification_code?: string | null
+          claimed_at?: string | null
+          claimed_by?: string | null
           created_at?: string
+          detected_device_category?: string | null
           device_fingerprint?: string
           device_type?: string | null
           first_seen_at?: string
           id?: string
           ip_addresses?: Json | null
           is_active?: boolean | null
+          last_known_location?: Json | null
           last_seen_at?: string
           metadata?: Json | null
           os?: string | null
+          screen_info?: Json | null
           session_keys?: string[] | null
           updated_at?: string
           wallet_address?: string | null
           worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ecosystem_event_log: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          metadata: Json | null
+          priority: number | null
+          processed: boolean | null
+          processed_at: string | null
+          session_id: string | null
+          source_repo: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          event_data: Json
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          priority?: number | null
+          processed?: boolean | null
+          processed_at?: string | null
+          session_id?: string | null
+          source_repo: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          priority?: number | null
+          processed?: boolean | null
+          processed_at?: string | null
+          session_id?: string | null
+          source_repo?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ecosystem_health_metrics: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          measured_at: string
+          metric_type: string
+          metric_value: number
+          repo_name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          measured_at?: string
+          metric_type: string
+          metric_value: number
+          repo_name: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          measured_at?: string
+          metric_type?: string
+          metric_value?: number
+          repo_name?: string
+          status?: string
         }
         Relationships: []
       }
@@ -2497,6 +3005,7 @@ export type Database = {
           created_at: string | null
           deployment_id: string | null
           deployment_version: string | null
+          duration_ms: number | null
           error_message: string | null
           execution_source: string | null
           execution_time_ms: number | null
@@ -2512,6 +3021,7 @@ export type Database = {
           payload: Json | null
           result_summary: string | null
           session_id: string | null
+          status: string | null
           success: boolean
           tool_category: string | null
           user_context: string | null
@@ -2522,6 +3032,7 @@ export type Database = {
           created_at?: string | null
           deployment_id?: string | null
           deployment_version?: string | null
+          duration_ms?: number | null
           error_message?: string | null
           execution_source?: string | null
           execution_time_ms?: number | null
@@ -2537,6 +3048,7 @@ export type Database = {
           payload?: Json | null
           result_summary?: string | null
           session_id?: string | null
+          status?: string | null
           success: boolean
           tool_category?: string | null
           user_context?: string | null
@@ -2547,6 +3059,7 @@ export type Database = {
           created_at?: string | null
           deployment_id?: string | null
           deployment_version?: string | null
+          duration_ms?: number | null
           error_message?: string | null
           execution_source?: string | null
           execution_time_ms?: number | null
@@ -2562,6 +3075,7 @@ export type Database = {
           payload?: Json | null
           result_summary?: string | null
           session_id?: string | null
+          status?: string | null
           success?: boolean
           tool_category?: string | null
           user_context?: string | null
@@ -2809,6 +3323,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "engagement_commands_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "engagement_commands_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
             foreignKeyName: "engagement_commands_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -2827,6 +3355,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "device_connection_status"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "engagement_commands_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
             referencedColumns: ["session_id"]
           },
         ]
@@ -3060,6 +3595,20 @@ export type Database = {
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "faucet_claims_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "faucet_claims_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
         ]
       }
       faucet_config: {
@@ -3083,6 +3632,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      faucet_metrics_daily: {
+        Row: {
+          calendar_date: string
+          created_at: string | null
+          failed_claims: number | null
+          id: string
+          total_claims: number | null
+          total_distributed: number | null
+          unique_wallets: number | null
+        }
+        Insert: {
+          calendar_date?: string
+          created_at?: string | null
+          failed_claims?: number | null
+          id?: string
+          total_claims?: number | null
+          total_distributed?: number | null
+          unique_wallets?: number | null
+        }
+        Update: {
+          calendar_date?: string
+          created_at?: string | null
+          failed_claims?: number | null
+          id?: string
+          total_claims?: number | null
+          total_distributed?: number | null
+          unique_wallets?: number | null
         }
         Relationships: []
       }
@@ -3173,6 +3752,1043 @@ export type Database = {
           response_time_ms?: number | null
           status?: string
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      generated_agents: {
+        Row: {
+          configuration: Json
+          created_at: string
+          id: string
+          metadata: Json | null
+          name: string
+        }
+        Insert: {
+          configuration: Json
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          name: string
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          name?: string
+        }
+        Relationships: []
+      }
+      generated_workflows: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          workflow_definition: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id?: string
+          workflow_definition: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          workflow_definition?: Json
+        }
+        Relationships: []
+      }
+      gh_agent_coordination_events: {
+        Row: {
+          agent_list: string[] | null
+          agent_results: Json | null
+          agents_failed: number | null
+          agents_responded: number | null
+          agents_targeted: number | null
+          analysis_findings: Json | null
+          api_calls_made: number | null
+          avg_agent_response_time_ms: number | null
+          completed_at: string | null
+          coordination_cycle_id: string
+          coordination_metadata: Json | null
+          coordination_outcome: string | null
+          created_at: string
+          cycle_number: number | null
+          cycle_type: string
+          duration_ms: number | null
+          emergency_resolution_time_ms: number | null
+          emergency_resolved: boolean | null
+          emergency_severity: string | null
+          emergency_type: string | null
+          error_agents: string[] | null
+          error_details: Json | null
+          error_message: string | null
+          id: string
+          max_agent_response_time_ms: number | null
+          min_agent_response_time_ms: number | null
+          outcome_summary: Json | null
+          recommendations: Json | null
+          started_at: string
+          status: string
+          supabase_functions_invoked: string[] | null
+          tasks_assigned: number | null
+          tasks_completed: number | null
+          tasks_created: number | null
+          tasks_failed: number | null
+          updated_at: string
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          agent_list?: string[] | null
+          agent_results?: Json | null
+          agents_failed?: number | null
+          agents_responded?: number | null
+          agents_targeted?: number | null
+          analysis_findings?: Json | null
+          api_calls_made?: number | null
+          avg_agent_response_time_ms?: number | null
+          completed_at?: string | null
+          coordination_cycle_id: string
+          coordination_metadata?: Json | null
+          coordination_outcome?: string | null
+          created_at?: string
+          cycle_number?: number | null
+          cycle_type: string
+          duration_ms?: number | null
+          emergency_resolution_time_ms?: number | null
+          emergency_resolved?: boolean | null
+          emergency_severity?: string | null
+          emergency_type?: string | null
+          error_agents?: string[] | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          max_agent_response_time_ms?: number | null
+          min_agent_response_time_ms?: number | null
+          outcome_summary?: Json | null
+          recommendations?: Json | null
+          started_at?: string
+          status: string
+          supabase_functions_invoked?: string[] | null
+          tasks_assigned?: number | null
+          tasks_completed?: number | null
+          tasks_created?: number | null
+          tasks_failed?: number | null
+          updated_at?: string
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          agent_list?: string[] | null
+          agent_results?: Json | null
+          agents_failed?: number | null
+          agents_responded?: number | null
+          agents_targeted?: number | null
+          analysis_findings?: Json | null
+          api_calls_made?: number | null
+          avg_agent_response_time_ms?: number | null
+          completed_at?: string | null
+          coordination_cycle_id?: string
+          coordination_metadata?: Json | null
+          coordination_outcome?: string | null
+          created_at?: string
+          cycle_number?: number | null
+          cycle_type?: string
+          duration_ms?: number | null
+          emergency_resolution_time_ms?: number | null
+          emergency_resolved?: boolean | null
+          emergency_severity?: string | null
+          emergency_type?: string | null
+          error_agents?: string[] | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          max_agent_response_time_ms?: number | null
+          min_agent_response_time_ms?: number | null
+          outcome_summary?: Json | null
+          recommendations?: Json | null
+          started_at?: string
+          status?: string
+          supabase_functions_invoked?: string[] | null
+          tasks_assigned?: number | null
+          tasks_completed?: number | null
+          tasks_created?: number | null
+          tasks_failed?: number | null
+          updated_at?: string
+          workflow_execution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_agent_coordination_events_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_cross_repo_sync_logs: {
+        Row: {
+          api_call_count: number | null
+          bytes_transferred: number | null
+          completed_at: string | null
+          created_at: string
+          data_consistency_score: number | null
+          duration_ms: number | null
+          entities_failed: number | null
+          entities_skipped: number | null
+          entities_synced: number | null
+          error_details: Json | null
+          error_message: string | null
+          id: string
+          retry_count: number | null
+          source_repository: string
+          started_at: string
+          status: string
+          supabase_functions_called: string[] | null
+          sync_categories: Json | null
+          sync_id: string
+          sync_metadata: Json | null
+          sync_trigger: string
+          sync_type: string
+          target_repository: string
+          total_entities: number | null
+          updated_at: string
+          validation_errors: Json | null
+          validation_status: string | null
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          api_call_count?: number | null
+          bytes_transferred?: number | null
+          completed_at?: string | null
+          created_at?: string
+          data_consistency_score?: number | null
+          duration_ms?: number | null
+          entities_failed?: number | null
+          entities_skipped?: number | null
+          entities_synced?: number | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          source_repository: string
+          started_at?: string
+          status: string
+          supabase_functions_called?: string[] | null
+          sync_categories?: Json | null
+          sync_id: string
+          sync_metadata?: Json | null
+          sync_trigger: string
+          sync_type: string
+          target_repository: string
+          total_entities?: number | null
+          updated_at?: string
+          validation_errors?: Json | null
+          validation_status?: string | null
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          api_call_count?: number | null
+          bytes_transferred?: number | null
+          completed_at?: string | null
+          created_at?: string
+          data_consistency_score?: number | null
+          duration_ms?: number | null
+          entities_failed?: number | null
+          entities_skipped?: number | null
+          entities_synced?: number | null
+          error_details?: Json | null
+          error_message?: string | null
+          id?: string
+          retry_count?: number | null
+          source_repository?: string
+          started_at?: string
+          status?: string
+          supabase_functions_called?: string[] | null
+          sync_categories?: Json | null
+          sync_id?: string
+          sync_metadata?: Json | null
+          sync_trigger?: string
+          sync_type?: string
+          target_repository?: string
+          total_entities?: number | null
+          updated_at?: string
+          validation_errors?: Json | null
+          validation_status?: string | null
+          workflow_execution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_cross_repo_sync_logs_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_deployment_events: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          branch_name: string | null
+          commit_sha: string | null
+          completed_at: string | null
+          components_count: number | null
+          created_at: string
+          deployed_components: string[] | null
+          deployment_id: string
+          deployment_metadata: Json | null
+          deployment_platform: string
+          deployment_status: string
+          deployment_type: string
+          duration_ms: number | null
+          environment: string
+          error_components: string[] | null
+          error_logs: string | null
+          error_message: string | null
+          failed_components: number | null
+          id: string
+          migration_name: string | null
+          migration_version: string | null
+          post_deployment_tests_passed: boolean | null
+          pr_number: number | null
+          previous_deployment_id: string | null
+          rollback_completed: boolean | null
+          rollback_reason: string | null
+          rollback_required: boolean | null
+          started_at: string
+          successful_components: number | null
+          supabase_functions_deployed: string[] | null
+          supabase_project_id: string | null
+          updated_at: string
+          validation_results: Json | null
+          vercel_deployment_id: string | null
+          vercel_deployment_url: string | null
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_name?: string | null
+          branch_name?: string | null
+          commit_sha?: string | null
+          completed_at?: string | null
+          components_count?: number | null
+          created_at?: string
+          deployed_components?: string[] | null
+          deployment_id: string
+          deployment_metadata?: Json | null
+          deployment_platform: string
+          deployment_status: string
+          deployment_type: string
+          duration_ms?: number | null
+          environment: string
+          error_components?: string[] | null
+          error_logs?: string | null
+          error_message?: string | null
+          failed_components?: number | null
+          id?: string
+          migration_name?: string | null
+          migration_version?: string | null
+          post_deployment_tests_passed?: boolean | null
+          pr_number?: number | null
+          previous_deployment_id?: string | null
+          rollback_completed?: boolean | null
+          rollback_reason?: string | null
+          rollback_required?: boolean | null
+          started_at?: string
+          successful_components?: number | null
+          supabase_functions_deployed?: string[] | null
+          supabase_project_id?: string | null
+          updated_at?: string
+          validation_results?: Json | null
+          vercel_deployment_id?: string | null
+          vercel_deployment_url?: string | null
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          agent_name?: string | null
+          branch_name?: string | null
+          commit_sha?: string | null
+          completed_at?: string | null
+          components_count?: number | null
+          created_at?: string
+          deployed_components?: string[] | null
+          deployment_id?: string
+          deployment_metadata?: Json | null
+          deployment_platform?: string
+          deployment_status?: string
+          deployment_type?: string
+          duration_ms?: number | null
+          environment?: string
+          error_components?: string[] | null
+          error_logs?: string | null
+          error_message?: string | null
+          failed_components?: number | null
+          id?: string
+          migration_name?: string | null
+          migration_version?: string | null
+          post_deployment_tests_passed?: boolean | null
+          pr_number?: number | null
+          previous_deployment_id?: string | null
+          rollback_completed?: boolean | null
+          rollback_reason?: string | null
+          rollback_required?: boolean | null
+          started_at?: string
+          successful_components?: number | null
+          supabase_functions_deployed?: string[] | null
+          supabase_project_id?: string | null
+          updated_at?: string
+          validation_results?: Json | null
+          vercel_deployment_id?: string | null
+          vercel_deployment_url?: string | null
+          workflow_execution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_deployment_events_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_generated_workflows: {
+        Row: {
+          avg_duration_ms: number | null
+          commit_sha: string | null
+          commit_url: string | null
+          created_at: string
+          deprecated_at: string | null
+          deprecation_reason: string | null
+          failed_executions: number | null
+          first_execution_at: string | null
+          first_execution_status: string | null
+          generated_at: string
+          generation_algorithm: string | null
+          generation_errors: string[] | null
+          generation_id: string
+          generation_metadata: Json | null
+          generation_reason: string | null
+          generation_status: string
+          generator_workflow_execution_id: string | null
+          id: string
+          is_active: boolean | null
+          jobs_count: number | null
+          purpose: string | null
+          replaced_by_workflow: string | null
+          repository: string
+          steps_count: number | null
+          successful_executions: number | null
+          total_cost_usd: number | null
+          total_executions: number | null
+          triggers: Json | null
+          updated_at: string
+          validation_errors: string[] | null
+          workflow_file: string
+          workflow_name: string
+          workflow_type: string
+          workflow_yaml: string
+          workflow_yaml_size: number | null
+        }
+        Insert: {
+          avg_duration_ms?: number | null
+          commit_sha?: string | null
+          commit_url?: string | null
+          created_at?: string
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
+          failed_executions?: number | null
+          first_execution_at?: string | null
+          first_execution_status?: string | null
+          generated_at?: string
+          generation_algorithm?: string | null
+          generation_errors?: string[] | null
+          generation_id: string
+          generation_metadata?: Json | null
+          generation_reason?: string | null
+          generation_status: string
+          generator_workflow_execution_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          jobs_count?: number | null
+          purpose?: string | null
+          replaced_by_workflow?: string | null
+          repository: string
+          steps_count?: number | null
+          successful_executions?: number | null
+          total_cost_usd?: number | null
+          total_executions?: number | null
+          triggers?: Json | null
+          updated_at?: string
+          validation_errors?: string[] | null
+          workflow_file: string
+          workflow_name: string
+          workflow_type: string
+          workflow_yaml: string
+          workflow_yaml_size?: number | null
+        }
+        Update: {
+          avg_duration_ms?: number | null
+          commit_sha?: string | null
+          commit_url?: string | null
+          created_at?: string
+          deprecated_at?: string | null
+          deprecation_reason?: string | null
+          failed_executions?: number | null
+          first_execution_at?: string | null
+          first_execution_status?: string | null
+          generated_at?: string
+          generation_algorithm?: string | null
+          generation_errors?: string[] | null
+          generation_id?: string
+          generation_metadata?: Json | null
+          generation_reason?: string | null
+          generation_status?: string
+          generator_workflow_execution_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          jobs_count?: number | null
+          purpose?: string | null
+          replaced_by_workflow?: string | null
+          repository?: string
+          steps_count?: number | null
+          successful_executions?: number | null
+          total_cost_usd?: number | null
+          total_executions?: number | null
+          triggers?: Json | null
+          updated_at?: string
+          validation_errors?: string[] | null
+          workflow_file?: string
+          workflow_name?: string
+          workflow_type?: string
+          workflow_yaml?: string
+          workflow_yaml_size?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_generated_workflows_generator_workflow_execution_id_fkey"
+            columns: ["generator_workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_monitoring_health_checks: {
+        Row: {
+          alert_details: Json | null
+          alert_message: string | null
+          alert_severity: string | null
+          alert_triggered: boolean | null
+          check_id: string
+          check_metadata: Json | null
+          check_status: string
+          completed_at: string | null
+          crash_loop_count: number | null
+          crash_loop_detected: boolean | null
+          crash_loop_resolution_action: string | null
+          created_at: string
+          endpoint_function: string | null
+          endpoint_url: string | null
+          error_code: string | null
+          error_message: string | null
+          error_occurred: boolean | null
+          health_indicators: Json | null
+          health_score: number | null
+          http_method: string | null
+          http_status_code: number | null
+          id: string
+          latency_metrics: Json | null
+          monitor_name: string
+          monitor_type: string
+          response_body: Json | null
+          response_headers: Json | null
+          response_time_ms: number | null
+          started_at: string
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          alert_details?: Json | null
+          alert_message?: string | null
+          alert_severity?: string | null
+          alert_triggered?: boolean | null
+          check_id: string
+          check_metadata?: Json | null
+          check_status: string
+          completed_at?: string | null
+          crash_loop_count?: number | null
+          crash_loop_detected?: boolean | null
+          crash_loop_resolution_action?: string | null
+          created_at?: string
+          endpoint_function?: string | null
+          endpoint_url?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          error_occurred?: boolean | null
+          health_indicators?: Json | null
+          health_score?: number | null
+          http_method?: string | null
+          http_status_code?: number | null
+          id?: string
+          latency_metrics?: Json | null
+          monitor_name: string
+          monitor_type: string
+          response_body?: Json | null
+          response_headers?: Json | null
+          response_time_ms?: number | null
+          started_at?: string
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          alert_details?: Json | null
+          alert_message?: string | null
+          alert_severity?: string | null
+          alert_triggered?: boolean | null
+          check_id?: string
+          check_metadata?: Json | null
+          check_status?: string
+          completed_at?: string | null
+          crash_loop_count?: number | null
+          crash_loop_detected?: boolean | null
+          crash_loop_resolution_action?: string | null
+          created_at?: string
+          endpoint_function?: string | null
+          endpoint_url?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          error_occurred?: boolean | null
+          health_indicators?: Json | null
+          health_score?: number | null
+          http_method?: string | null
+          http_status_code?: number | null
+          id?: string
+          latency_metrics?: Json | null
+          monitor_name?: string
+          monitor_type?: string
+          response_body?: Json | null
+          response_headers?: Json | null
+          response_time_ms?: number | null
+          started_at?: string
+          workflow_execution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_monitoring_health_checks_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_security_audit_logs: {
+        Row: {
+          audit_id: string
+          audit_metadata: Json | null
+          audit_status: string
+          audit_type: string
+          auto_fix_applied: boolean | null
+          auto_fix_available: boolean | null
+          code_coverage_percent: number | null
+          code_smells_found: number | null
+          completed_at: string | null
+          compliance_checks_failed: number | null
+          compliance_checks_passed: number | null
+          compliance_issues: Json | null
+          created_at: string
+          critical_vulnerabilities: number | null
+          dependencies_scanned: number | null
+          duration_ms: number | null
+          error_message: string | null
+          findings: Json | null
+          high_vulnerabilities: number | null
+          id: string
+          low_vulnerabilities: number | null
+          medium_vulnerabilities: number | null
+          overall_severity_score: number | null
+          remediation_steps: string[] | null
+          risk_level: string | null
+          secret_types: string[] | null
+          secrets_detected: number | null
+          started_at: string
+          updated_at: string
+          vulnerabilities_found: number | null
+          vulnerable_dependencies: string[] | null
+          workflow_execution_id: string | null
+          workflow_name: string
+        }
+        Insert: {
+          audit_id: string
+          audit_metadata?: Json | null
+          audit_status: string
+          audit_type: string
+          auto_fix_applied?: boolean | null
+          auto_fix_available?: boolean | null
+          code_coverage_percent?: number | null
+          code_smells_found?: number | null
+          completed_at?: string | null
+          compliance_checks_failed?: number | null
+          compliance_checks_passed?: number | null
+          compliance_issues?: Json | null
+          created_at?: string
+          critical_vulnerabilities?: number | null
+          dependencies_scanned?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          findings?: Json | null
+          high_vulnerabilities?: number | null
+          id?: string
+          low_vulnerabilities?: number | null
+          medium_vulnerabilities?: number | null
+          overall_severity_score?: number | null
+          remediation_steps?: string[] | null
+          risk_level?: string | null
+          secret_types?: string[] | null
+          secrets_detected?: number | null
+          started_at?: string
+          updated_at?: string
+          vulnerabilities_found?: number | null
+          vulnerable_dependencies?: string[] | null
+          workflow_execution_id?: string | null
+          workflow_name: string
+        }
+        Update: {
+          audit_id?: string
+          audit_metadata?: Json | null
+          audit_status?: string
+          audit_type?: string
+          auto_fix_applied?: boolean | null
+          auto_fix_available?: boolean | null
+          code_coverage_percent?: number | null
+          code_smells_found?: number | null
+          completed_at?: string | null
+          compliance_checks_failed?: number | null
+          compliance_checks_passed?: number | null
+          compliance_issues?: Json | null
+          created_at?: string
+          critical_vulnerabilities?: number | null
+          dependencies_scanned?: number | null
+          duration_ms?: number | null
+          error_message?: string | null
+          findings?: Json | null
+          high_vulnerabilities?: number | null
+          id?: string
+          low_vulnerabilities?: number | null
+          medium_vulnerabilities?: number | null
+          overall_severity_score?: number | null
+          remediation_steps?: string[] | null
+          risk_level?: string | null
+          secret_types?: string[] | null
+          secrets_detected?: number | null
+          started_at?: string
+          updated_at?: string
+          vulnerabilities_found?: number | null
+          vulnerable_dependencies?: string[] | null
+          workflow_execution_id?: string | null
+          workflow_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_security_audit_logs_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_workflow_executions: {
+        Row: {
+          billable_minutes: number | null
+          cancelled_jobs: number | null
+          completed_at: string | null
+          conclusion: string | null
+          created_at: string
+          duration_ms: number | null
+          environment: string | null
+          error_code: string | null
+          error_message: string | null
+          failed_jobs: number | null
+          generated_by_workflow: string | null
+          generation_metadata: Json | null
+          id: string
+          is_auto_generated: boolean | null
+          labels: string[] | null
+          queue_time_ms: number | null
+          repository: string
+          retry_count: number | null
+          run_attempt: number | null
+          run_id: number
+          run_number: number | null
+          started_at: string
+          status: string
+          successful_jobs: number | null
+          total_jobs: number | null
+          trigger_actor: string | null
+          trigger_ref: string | null
+          trigger_sha: string | null
+          trigger_type: string
+          updated_at: string
+          workflow_category: string | null
+          workflow_file: string
+          workflow_inputs: Json | null
+          workflow_name: string
+        }
+        Insert: {
+          billable_minutes?: number | null
+          cancelled_jobs?: number | null
+          completed_at?: string | null
+          conclusion?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          environment?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_jobs?: number | null
+          generated_by_workflow?: string | null
+          generation_metadata?: Json | null
+          id?: string
+          is_auto_generated?: boolean | null
+          labels?: string[] | null
+          queue_time_ms?: number | null
+          repository: string
+          retry_count?: number | null
+          run_attempt?: number | null
+          run_id: number
+          run_number?: number | null
+          started_at?: string
+          status: string
+          successful_jobs?: number | null
+          total_jobs?: number | null
+          trigger_actor?: string | null
+          trigger_ref?: string | null
+          trigger_sha?: string | null
+          trigger_type: string
+          updated_at?: string
+          workflow_category?: string | null
+          workflow_file: string
+          workflow_inputs?: Json | null
+          workflow_name: string
+        }
+        Update: {
+          billable_minutes?: number | null
+          cancelled_jobs?: number | null
+          completed_at?: string | null
+          conclusion?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          environment?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          failed_jobs?: number | null
+          generated_by_workflow?: string | null
+          generation_metadata?: Json | null
+          id?: string
+          is_auto_generated?: boolean | null
+          labels?: string[] | null
+          queue_time_ms?: number | null
+          repository?: string
+          retry_count?: number | null
+          run_attempt?: number | null
+          run_id?: number
+          run_number?: number | null
+          started_at?: string
+          status?: string
+          successful_jobs?: number | null
+          total_jobs?: number | null
+          trigger_actor?: string | null
+          trigger_ref?: string | null
+          trigger_sha?: string | null
+          trigger_type?: string
+          updated_at?: string
+          workflow_category?: string | null
+          workflow_file?: string
+          workflow_inputs?: Json | null
+          workflow_name?: string
+        }
+        Relationships: []
+      }
+      gh_workflow_jobs: {
+        Row: {
+          completed_at: string | null
+          conclusion: string | null
+          cpu_usage_percent: number | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          error_step: string | null
+          failed_steps: number | null
+          id: string
+          job_id: number
+          job_index: number | null
+          job_name: string
+          memory_usage_mb: number | null
+          runner_labels: string[] | null
+          runner_name: string | null
+          runner_os: string | null
+          started_at: string
+          status: string
+          successful_steps: number | null
+          total_steps: number | null
+          workflow_execution_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          conclusion?: string | null
+          cpu_usage_percent?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_step?: string | null
+          failed_steps?: number | null
+          id?: string
+          job_id: number
+          job_index?: number | null
+          job_name: string
+          memory_usage_mb?: number | null
+          runner_labels?: string[] | null
+          runner_name?: string | null
+          runner_os?: string | null
+          started_at: string
+          status: string
+          successful_steps?: number | null
+          total_steps?: number | null
+          workflow_execution_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          conclusion?: string | null
+          cpu_usage_percent?: number | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          error_step?: string | null
+          failed_steps?: number | null
+          id?: string
+          job_id?: number
+          job_index?: number | null
+          job_name?: string
+          memory_usage_mb?: number | null
+          runner_labels?: string[] | null
+          runner_name?: string | null
+          runner_os?: string | null
+          started_at?: string
+          status?: string
+          successful_steps?: number | null
+          total_steps?: number | null
+          workflow_execution_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gh_workflow_jobs_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "gh_workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gh_workflow_metrics: {
+        Row: {
+          avg_billable_minutes_per_run: number | null
+          avg_duration_ms: number | null
+          avg_queue_time_ms: number | null
+          cancelled_executions: number | null
+          created_at: string
+          error_count: number | null
+          error_types: Json | null
+          estimated_cost_usd: number | null
+          failed_executions: number | null
+          failure_rate: number | null
+          id: string
+          max_duration_ms: number | null
+          min_duration_ms: number | null
+          p50_duration_ms: number | null
+          p95_duration_ms: number | null
+          p99_duration_ms: number | null
+          period_end: string
+          period_start: string
+          period_type: string
+          repository: string
+          success_rate: number | null
+          successful_executions: number | null
+          total_billable_minutes: number | null
+          total_executions: number | null
+          trigger_type_breakdown: Json | null
+          updated_at: string
+          workflow_file: string
+          workflow_name: string
+        }
+        Insert: {
+          avg_billable_minutes_per_run?: number | null
+          avg_duration_ms?: number | null
+          avg_queue_time_ms?: number | null
+          cancelled_executions?: number | null
+          created_at?: string
+          error_count?: number | null
+          error_types?: Json | null
+          estimated_cost_usd?: number | null
+          failed_executions?: number | null
+          failure_rate?: number | null
+          id?: string
+          max_duration_ms?: number | null
+          min_duration_ms?: number | null
+          p50_duration_ms?: number | null
+          p95_duration_ms?: number | null
+          p99_duration_ms?: number | null
+          period_end: string
+          period_start: string
+          period_type: string
+          repository: string
+          success_rate?: number | null
+          successful_executions?: number | null
+          total_billable_minutes?: number | null
+          total_executions?: number | null
+          trigger_type_breakdown?: Json | null
+          updated_at?: string
+          workflow_file: string
+          workflow_name: string
+        }
+        Update: {
+          avg_billable_minutes_per_run?: number | null
+          avg_duration_ms?: number | null
+          avg_queue_time_ms?: number | null
+          cancelled_executions?: number | null
+          created_at?: string
+          error_count?: number | null
+          error_types?: Json | null
+          estimated_cost_usd?: number | null
+          failed_executions?: number | null
+          failure_rate?: number | null
+          id?: string
+          max_duration_ms?: number | null
+          min_duration_ms?: number | null
+          p50_duration_ms?: number | null
+          p95_duration_ms?: number | null
+          p99_duration_ms?: number | null
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          repository?: string
+          success_rate?: number | null
+          successful_executions?: number | null
+          total_billable_minutes?: number | null
+          total_executions?: number | null
+          trigger_type_breakdown?: Json | null
+          updated_at?: string
+          workflow_file?: string
+          workflow_name?: string
         }
         Relationships: []
       }
@@ -3350,6 +4966,65 @@ export type Database = {
         }
         Relationships: []
       }
+      google_cloud_service_log: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          oauth_connection_id: string | null
+          occurred_at: string | null
+          operation: string | null
+          project_id: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          service_name: string | null
+          status: string | null
+          status_code: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          oauth_connection_id?: string | null
+          occurred_at?: string | null
+          operation?: string | null
+          project_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          service_name?: string | null
+          status?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          oauth_connection_id?: string | null
+          occurred_at?: string | null
+          operation?: string | null
+          project_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          service_name?: string | null
+          status?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_cloud_service_log_oauth_connection_id_fkey"
+            columns: ["oauth_connection_id"]
+            isOneToOne: false
+            referencedRelation: "oauth_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       idea_evaluation_history: {
         Row: {
           created_at: string | null
@@ -3521,6 +5196,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "devices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ip_address_log_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "ip_address_log_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
           },
         ]
       }
@@ -3869,12 +5558,14 @@ export type Database = {
         Row: {
           agent_id: string
           completed_at: string | null
+          created_at: string | null
           id: string
           learning_materials: Json
           learning_task_id: string | null
           metadata: Json | null
           proficiency_tests: Json | null
           progress_percentage: number
+          skill_area: string | null
           skill_being_learned: string
           started_at: string
           status: string
@@ -3882,12 +5573,14 @@ export type Database = {
         Insert: {
           agent_id: string
           completed_at?: string | null
+          created_at?: string | null
           id?: string
           learning_materials: Json
           learning_task_id?: string | null
           metadata?: Json | null
           proficiency_tests?: Json | null
           progress_percentage?: number
+          skill_area?: string | null
           skill_being_learned: string
           started_at?: string
           status?: string
@@ -3895,17 +5588,26 @@ export type Database = {
         Update: {
           agent_id?: string
           completed_at?: string | null
+          created_at?: string | null
           id?: string
           learning_materials?: Json
           learning_task_id?: string | null
           metadata?: Json | null
           proficiency_tests?: Json | null
           progress_percentage?: number
+          skill_area?: string | null
           skill_being_learned?: string
           started_at?: string
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "learning_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "learning_sessions_agent_id_fkey"
             columns: ["agent_id"]
@@ -4343,6 +6045,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_worker_claims: {
+        Row: {
+          claim_token: string
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string | null
+          device_info: Json | null
+          expires_at: string
+          id: string
+          last_ping: string | null
+          status: string | null
+          updated_at: string | null
+          username: string
+          wallet_address: string
+          worker_id: string
+        }
+        Insert: {
+          claim_token: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          expires_at: string
+          id?: string
+          last_ping?: string | null
+          status?: string | null
+          updated_at?: string | null
+          username: string
+          wallet_address: string
+          worker_id: string
+        }
+        Update: {
+          claim_token?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string | null
+          device_info?: Json | null
+          expires_at?: string
+          id?: string
+          last_ping?: string | null
+          status?: string | null
+          updated_at?: string | null
+          username?: string
+          wallet_address?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
       pop_events_ledger: {
         Row: {
           activity_log_ids: string[] | null
@@ -4433,6 +6183,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pop_events_ledger_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "pop_events_ledger_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
             foreignKeyName: "pop_events_ledger_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -4451,6 +6215,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "device_connection_status"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "pop_events_ledger_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
             referencedColumns: ["session_id"]
           },
         ]
@@ -4511,6 +6282,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_login_at: string | null
+          linked_device_ids: string[] | null
           linked_worker_ids: string[] | null
           timezone: string | null
           total_mining_shares: number | null
@@ -4533,6 +6305,7 @@ export type Database = {
           id: string
           is_active?: boolean | null
           last_login_at?: string | null
+          linked_device_ids?: string[] | null
           linked_worker_ids?: string[] | null
           timezone?: string | null
           total_mining_shares?: number | null
@@ -4555,6 +6328,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_login_at?: string | null
+          linked_device_ids?: string[] | null
           linked_worker_ids?: string[] | null
           timezone?: string | null
           total_mining_shares?: number | null
@@ -4626,7 +6400,10 @@ export type Database = {
           endpoint: string
           id: string
           identifier: string
+          redis_backup: Json | null
           request_count: number | null
+          sliding_window_data: Json | null
+          updated_at: string | null
           window_start: string
         }
         Insert: {
@@ -4634,7 +6411,10 @@ export type Database = {
           endpoint: string
           id?: string
           identifier: string
+          redis_backup?: Json | null
           request_count?: number | null
+          sliding_window_data?: Json | null
+          updated_at?: string | null
           window_start?: string
         }
         Update: {
@@ -4642,7 +6422,10 @@ export type Database = {
           endpoint?: string
           id?: string
           identifier?: string
+          redis_backup?: Json | null
           request_count?: number | null
+          sliding_window_data?: Json | null
+          updated_at?: string | null
           window_start?: string
         }
         Relationships: []
@@ -5326,6 +7109,7 @@ export type Database = {
       superduper_agents: {
         Row: {
           agent_name: string
+          avg_execution_time_ms: number | null
           category: string | null
           combined_capabilities: Json | null
           created_at: string | null
@@ -5336,6 +7120,8 @@ export type Database = {
           failure_count: number | null
           id: string
           is_active: boolean | null
+          last_execution_at: string | null
+          metadata: Json | null
           priority: number | null
           status: string | null
           success_count: number | null
@@ -5343,6 +7129,7 @@ export type Database = {
         }
         Insert: {
           agent_name: string
+          avg_execution_time_ms?: number | null
           category?: string | null
           combined_capabilities?: Json | null
           created_at?: string | null
@@ -5353,6 +7140,8 @@ export type Database = {
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
+          last_execution_at?: string | null
+          metadata?: Json | null
           priority?: number | null
           status?: string | null
           success_count?: number | null
@@ -5360,6 +7149,7 @@ export type Database = {
         }
         Update: {
           agent_name?: string
+          avg_execution_time_ms?: number | null
           category?: string | null
           combined_capabilities?: Json | null
           created_at?: string | null
@@ -5370,12 +7160,120 @@ export type Database = {
           failure_count?: number | null
           id?: string
           is_active?: boolean | null
+          last_execution_at?: string | null
+          metadata?: Json | null
           priority?: number | null
           status?: string | null
           success_count?: number | null
           updated_at?: string | null
         }
         Relationships: []
+      }
+      superduper_capabilities: {
+        Row: {
+          agent_id: string | null
+          capability_description: string | null
+          capability_name: string
+          created_at: string | null
+          example_usage: string | null
+          function_signature: string | null
+          id: string
+          source_agent: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          agent_id?: string | null
+          capability_description?: string | null
+          capability_name: string
+          created_at?: string | null
+          example_usage?: string | null
+          function_signature?: string | null
+          id?: string
+          source_agent?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          agent_id?: string | null
+          capability_description?: string | null
+          capability_name?: string
+          created_at?: string | null
+          example_usage?: string | null
+          function_signature?: string | null
+          id?: string
+          source_agent?: string | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "superduper_capabilities_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "superduper_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      superduper_execution_log: {
+        Row: {
+          action: string
+          agent_id: string | null
+          agent_name: string
+          completed_at: string | null
+          context: Json | null
+          created_at: string | null
+          error_message: string | null
+          error_stack: string | null
+          execution_time_ms: number | null
+          id: string
+          input_params: Json | null
+          output_result: Json | null
+          retry_count: number | null
+          status: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          action: string
+          agent_id?: string | null
+          agent_name: string
+          completed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_params?: Json | null
+          output_result?: Json | null
+          retry_count?: number | null
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          action?: string
+          agent_id?: string | null
+          agent_name?: string
+          completed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_params?: Json | null
+          output_result?: Json | null
+          retry_count?: number | null
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "superduper_execution_log_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "superduper_agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_architecture_knowledge: {
         Row: {
@@ -5869,7 +7767,21 @@ export type Database = {
             foreignKeyName: "tasks_assignee_agent_id_fkey"
             columns: ["assignee_agent_id"]
             isOneToOne: false
+            referencedRelation: "agent_health_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_assignee_agent_id_fkey"
+            columns: ["assignee_agent_id"]
+            isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_claimed_by_fkey"
+            columns: ["claimed_by"]
+            isOneToOne: false
+            referencedRelation: "agent_health_summary"
             referencedColumns: ["id"]
           },
           {
@@ -5887,6 +7799,95 @@ export type Database = {
             referencedColumns: ["name"]
           },
         ]
+      }
+      token_balances: {
+        Row: {
+          balance: number | null
+          contract_id: string | null
+          id: string
+          last_transaction_hash: string | null
+          last_updated: string | null
+          wallet_address: string
+        }
+        Insert: {
+          balance?: number | null
+          contract_id?: string | null
+          id?: string
+          last_transaction_hash?: string | null
+          last_updated?: string | null
+          wallet_address: string
+        }
+        Update: {
+          balance?: number | null
+          contract_id?: string | null
+          id?: string
+          last_transaction_hash?: string | null
+          last_updated?: string | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_balances_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unified_sessions: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown
+          is_active: boolean | null
+          last_activity_at: string
+          metadata: Json | null
+          session_data: Json | null
+          session_key: string
+          source_repo: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          user_profile_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean | null
+          last_activity_at?: string
+          metadata?: Json | null
+          session_data?: Json | null
+          session_key: string
+          source_repo: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_profile_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_active?: boolean | null
+          last_activity_at?: string
+          metadata?: Json | null
+          session_data?: Json | null
+          session_key?: string
+          source_repo?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_profile_id?: string | null
+        }
+        Relationships: []
       }
       user_identities: {
         Row: {
@@ -6107,6 +8108,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "devices"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_worker_mappings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "user_worker_mappings_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
           },
         ]
       }
@@ -7405,6 +9420,20 @@ export type Database = {
             referencedRelation: "devices"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "worker_registrations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "worker_registrations_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
         ]
       }
       workflow_diagnostic_reports: {
@@ -7655,6 +9684,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           metadata: Json | null
+          name: string | null
           steps: Json
           success_rate: number | null
           tags: string[] | null
@@ -7670,6 +9700,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           metadata?: Json | null
+          name?: string | null
           steps: Json
           success_rate?: number | null
           tags?: string[] | null
@@ -7685,6 +9716,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           metadata?: Json | null
+          name?: string | null
           steps?: Json
           success_rate?: number | null
           tags?: string[] | null
@@ -7835,6 +9867,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "xmrt_assistant_interactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "xmrt_assistant_interactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
             foreignKeyName: "xmrt_assistant_interactions_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -7915,6 +9961,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "xmrt_transactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
+            referencedColumns: ["device_id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "user_claimed_devices_with_sessions"
+            referencedColumns: ["device_id"]
+          },
+          {
             foreignKeyName: "xmrt_transactions_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
@@ -7933,6 +9993,13 @@ export type Database = {
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "device_connection_status"
+            referencedColumns: ["session_id"]
+          },
+          {
+            foreignKeyName: "xmrt_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session_details_with_device"
             referencedColumns: ["session_id"]
           },
           {
@@ -8007,6 +10074,20 @@ export type Database = {
           task_status: Database["public"]["Enums"]["task_status"] | null
           task_title: string | null
           title: string | null
+        }
+        Relationships: []
+      }
+      agent_health_summary: {
+        Row: {
+          avg_execution_time_ms: number | null
+          health_status: string | null
+          id: string | null
+          last_activity: string | null
+          name: string | null
+          role: string | null
+          status: string | null
+          successful_calls: number | null
+          total_function_calls: number | null
         }
         Relationships: []
       }
@@ -8194,6 +10275,55 @@ export type Database = {
         }
         Relationships: []
       }
+      gh_agent_coordination_performance: {
+        Row: {
+          avg_agent_response_rate: number | null
+          avg_duration_ms: number | null
+          avg_task_completion_rate: number | null
+          coordination_date: string | null
+          cycle_type: string | null
+          failed_cycles: number | null
+          partial_cycles: number | null
+          successful_cycles: number | null
+          total_cycles: number | null
+          total_tasks_completed: number | null
+          total_tasks_created: number | null
+        }
+        Relationships: []
+      }
+      gh_cross_repo_sync_health: {
+        Row: {
+          avg_consistency_score: number | null
+          avg_duration_ms: number | null
+          failed_syncs: number | null
+          partial_syncs: number | null
+          successful_syncs: number | null
+          sync_date: string | null
+          sync_type: string | null
+          total_entities_failed: number | null
+          total_entities_synced: number | null
+          total_syncs: number | null
+        }
+        Relationships: []
+      }
+      gh_workflow_performance_summary: {
+        Row: {
+          avg_duration_ms: number | null
+          estimated_cost_usd: number | null
+          failed_runs: number | null
+          last_execution_at: string | null
+          median_duration_ms: number | null
+          p95_duration_ms: number | null
+          repository: string | null
+          success_rate: number | null
+          successful_runs: number | null
+          total_billable_minutes: number | null
+          total_runs: number | null
+          workflow_category: string | null
+          workflow_name: string | null
+        }
+        Relationships: []
+      }
       mv_github_contrib_daily: {
         Row: {
           activity_date: string | null
@@ -8258,6 +10388,75 @@ export type Database = {
           },
         ]
       }
+      session_details_with_device: {
+        Row: {
+          activities_count: number | null
+          app_version: string | null
+          browser: string | null
+          charging_sessions_count: number | null
+          connected_at: string | null
+          detected_device_category: string | null
+          device_fingerprint: string | null
+          device_id: string | null
+          device_type: string | null
+          disconnected_at: string | null
+          ip_address: unknown
+          is_active: boolean | null
+          last_heartbeat: string | null
+          os: string | null
+          pop_events_count: number | null
+          pop_points_earned: number | null
+          pop_points_validated: number | null
+          screen_info: Json | null
+          session_id: string | null
+          session_key: string | null
+          session_metadata: Json | null
+          total_duration_seconds: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_claimed_by_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      superduper_agent_stats: {
+        Row: {
+          agent_name: string | null
+          avg_execution_time_ms: number | null
+          category: string | null
+          display_name: string | null
+          execution_count: number | null
+          failure_count: number | null
+          is_active: boolean | null
+          last_execution_at: string | null
+          status: string | null
+          success_count: number | null
+          success_rate_percent: number | null
+          total_capabilities: number | null
+        }
+        Relationships: []
+      }
+      superduper_recent_activity: {
+        Row: {
+          action: string | null
+          agent_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          display_name: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string | null
+          status: string | null
+          triggered_by: string | null
+        }
+        Relationships: []
+      }
       system_health_summary: {
         Row: {
           active_sessions: number | null
@@ -8294,6 +10493,70 @@ export type Database = {
           unique_sessions: number | null
         }
         Relationships: []
+      }
+      treasury_stats: {
+        Row: {
+          amt_due: number | null
+          amt_paid: number | null
+          invalid_shares: number | null
+          last_seen_at: string | null
+          total_hashes: number | null
+          valid_shares: number | null
+          wallet_address: string | null
+        }
+        Insert: {
+          amt_due?: never
+          amt_paid?: never
+          invalid_shares?: never
+          last_seen_at?: string | null
+          total_hashes?: never
+          valid_shares?: never
+          wallet_address?: string | null
+        }
+        Update: {
+          amt_due?: never
+          amt_paid?: never
+          invalid_shares?: never
+          last_seen_at?: string | null
+          total_hashes?: never
+          valid_shares?: never
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      user_claimed_devices_with_sessions: {
+        Row: {
+          active_sessions: number | null
+          browser: string | null
+          claimed_at: string | null
+          detected_device_category: string | null
+          device_fingerprint: string | null
+          device_id: string | null
+          device_type: string | null
+          first_seen_at: string | null
+          ip_addresses_used: Json | null
+          is_active: boolean | null
+          last_seen_at: string | null
+          os: string | null
+          recent_sessions: Json | null
+          screen_info: Json | null
+          total_activities: number | null
+          total_charging_sessions: number | null
+          total_duration_seconds: number | null
+          total_pop_points_from_sessions: number | null
+          total_pop_points_validated: number | null
+          total_sessions: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_claimed_by_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_critical_incidents: {
         Row: {
@@ -8528,6 +10791,7 @@ export type Database = {
         Args: { request_metadata: Json; session_uuid: string }
         Returns: boolean
       }
+      cleanup_old_events: { Args: never; Returns: number }
       cleanup_stale_device_sessions: { Args: never; Returns: Json }
       complete_job: {
         Args: { p_job_id: number; p_lease_token: string; p_logs?: string }
@@ -8537,6 +10801,8 @@ export type Database = {
         Args: { p_force?: boolean; p_task_id: string }
         Returns: undefined
       }
+      detect_auth_crash_loop: { Args: never; Returns: Json }
+      detect_device_category: { Args: { user_agent: string }; Returns: string }
       disconnect_device_session: {
         Args: { p_session_id: string }
         Returns: undefined
@@ -8620,6 +10886,20 @@ export type Database = {
           status: Database["public"]["Enums"]["agent_status"]
         }[]
       }
+      get_claimable_workers: {
+        Args: never
+        Returns: {
+          device_info: Json
+          expires_at: string
+          hashrate: number
+          invalid_shares: number
+          is_active: boolean
+          last_ping: string
+          username: string
+          valid_shares: number
+          worker_id: string
+        }[]
+      }
       get_cron_jobs_status: {
         Args: never
         Returns: {
@@ -8637,6 +10917,7 @@ export type Database = {
           total_runs_24h: number
         }[]
       }
+      get_ecosystem_health: { Args: never; Returns: Json }
       get_edge_function_logs: {
         Args: { p_function_name?: string; p_limit?: number; p_since?: string }
         Returns: {
@@ -8672,23 +10953,70 @@ export type Database = {
           user_profile_id: string
         }[]
       }
+      get_my_claimed_workers: {
+        Args: { p_user_id: string }
+        Returns: {
+          claim_method: string
+          device_id: string
+          device_info: Json
+          hashrate: number
+          invalid_shares: number
+          is_active: boolean
+          last_seen: string
+          linked_at: string
+          valid_shares: number
+          worker_id: string
+        }[]
+      }
+      get_user_devices_and_sessions: {
+        Args: { p_user_id: string }
+        Returns: {
+          active_sessions: number
+          browser: string
+          device_category: string
+          device_id: string
+          device_type: string
+          first_seen: string
+          ip_addresses: Json
+          last_seen: string
+          os: string
+          recent_sessions: Json
+          total_duration_hours: number
+          total_pop_points: number
+          total_sessions: number
+        }[]
+      }
       get_user_earnings: { Args: { user_profile_id: string }; Returns: Json }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
       }
-      get_xmrt_charger_leaderboard: {
-        Args: { limit_count?: number }
-        Returns: {
-          avg_efficiency: number
-          battery_health: number
-          device_fingerprint: string
-          device_type: string
-          last_active: string
-          total_charging_sessions: number
-          total_pop_points: number
-        }[]
-      }
+      get_xmrt_charger_leaderboard:
+        | {
+            Args: { limit_count: number }
+            Returns: {
+              avg_efficiency: number
+              battery_health: number
+              device_fingerprint: string
+              device_type: string
+              last_active: string
+              total_charging_sessions: number
+              total_pop_points: number
+            }[]
+          }
+        | {
+            Args: { active_only?: boolean; limit_count: number }
+            Returns: {
+              avg_efficiency: number
+              battery_health: number
+              device_fingerprint: string
+              device_type: string
+              last_active: string
+              total_charging_sessions: number
+              total_pop_points: number
+            }[]
+          }
+      gh_refresh_workflow_analytics: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -8823,6 +11151,16 @@ export type Database = {
           lease_token: string
           payload: Json
         }[]
+      }
+      log_auth_error: {
+        Args: {
+          p_component?: string
+          p_error_details?: string
+          p_event_type: string
+          p_message: string
+          p_metadata?: Json
+        }
+        Returns: Json
       }
       log_edge_function_execution: {
         Args: {
@@ -9018,6 +11356,15 @@ export type Database = {
         Returns: string
       }
       trigger_daily_discussion_post: { Args: never; Returns: number }
+      update_cross_repo_state: {
+        Args: {
+          p_metadata?: Json
+          p_repo_name: string
+          p_state_key: string
+          p_state_value: Json
+        }
+        Returns: string
+      }
       update_session_heartbeat: {
         Args: { p_session_id: string }
         Returns: undefined
@@ -9065,6 +11412,17 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      upsert_device: {
+        Args: {
+          p_browser?: string
+          p_device_fingerprint: string
+          p_device_type?: string
+          p_is_active?: boolean
+          p_metadata?: Json
+          p_os?: string
+        }
+        Returns: string
       }
     }
     Enums: {
@@ -9145,6 +11503,7 @@ export type Database = {
         | "CANCELLED"
         | "COMPLETED"
         | "FAILED"
+        | "in_progress"
     }
     CompositeTypes: {
       edge_log_row: {
@@ -9366,6 +11725,7 @@ export const Constants = {
         "CANCELLED",
         "COMPLETED",
         "FAILED",
+        "in_progress",
       ],
     },
   },

@@ -9,6 +9,7 @@ import { publicProvider } from 'wagmi/providers/public';
 import { EthereumClient, w3mConnectors } from '@web3modal/ethereum';
 import { useEffect } from 'react';
 import { offlineStorage } from '@/utils/offlineStorage';
+import { CartProvider } from '@/contexts/CartContext';
 import Index from "./pages/Index";
 import Earnings from "./pages/Earnings";
 
@@ -43,24 +44,26 @@ const App = () => {
   return (
     <WagmiConfig config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/earnings" element={<Earnings />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/earnings" element={<Earnings />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CartProvider>
       </QueryClientProvider>
-      <Web3Modal
-        projectId={projectId}
-        ethereumClient={ethereumClient}
-        themeMode="light"
-      />
-    </WagmiConfig>
-  );
+        <Web3Modal
+          projectId={projectId}
+          ethereumClient={ethereumClient}
+          themeMode="light"
+        />
+      </WagmiConfig>
+    );
 };
 
 export default App;

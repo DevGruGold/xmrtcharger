@@ -2,17 +2,20 @@ import { useState } from "react";
 import { BatteryMonitorEnhanced } from "@/components/BatteryMonitorEnhanced";
 import { ContactFooter } from "@/components/ContactFooter";
 import { Web3Donation } from "@/components/Web3Donation";
-import { ProductXMRT } from "@/components/ProductXMRT";
 import { MaxChargingMode } from "@/components/MaxChargingMode";
 import { HeroSection } from "@/components/HeroSection";
 import { AIOptimizationInsights } from "@/components/battery/AIOptimizationInsights";
 import { AirplaneModeCoach } from "@/components/battery/AirplaneModeCoach";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { ProductHero } from "@/components/ProductHero";
+import { ProductCard } from "@/components/shop/ProductCard";
+import { ShoppingCart } from "@/components/shop/ShoppingCart";
 import { useDeviceConnection } from "@/hooks/useDeviceConnection";
 import { useBattery } from "@/hooks/useBattery";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { PRODUCTS } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { History } from "lucide-react";
+import { History, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -28,6 +31,10 @@ const Index = () => {
     isCharging: batteryStatus?.charging || false,
   });
 
+  const scrollToMonitoring = () => {
+    document.getElementById('monitoring-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Offline indicator */}
@@ -41,86 +48,131 @@ const Index = () => {
 
       <div className="relative z-10">
         {/* Header */}
-        <header className="border-b border-border bg-card corporate-shadow">
-          <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                XMRT Charger
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                by <span className="text-foreground font-semibold">Grounded Batteries, LLC</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Professional Battery Management Solutions
-              </p>
+        <header className="border-b border-border bg-card corporate-shadow sticky top-0 z-50">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  XMRT Charger
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  by <span className="text-foreground font-semibold">Grounded Batteries, LLC</span>
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => navigate('/earnings')}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 hidden sm:flex"
+                >
+                  <History className="h-4 w-4" />
+                  Earnings
+                </Button>
+                <ShoppingCart />
+              </div>
             </div>
           </div>
         </header>
 
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-24 sm:pb-20 space-y-8">
-          {/* View Earnings Button */}
-          <div className="flex justify-center">
-            <Button
-              onClick={() => navigate('/earnings')}
-              variant="outline"
-              className="gap-2"
-            >
-              <History className="h-4 w-4" />
-              View Earnings History
-            </Button>
+        {/* Product Hero Section */}
+        <ProductHero />
+
+        {/* Shop Section */}
+        <section id="shop-section" className="py-16 bg-secondary/30">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Shop XMRT Products
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Get your XMRT Charger and accessories. Start mining Monero while you charge.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {PRODUCTS.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            {/* Continue to Monitoring */}
+            <div className="text-center mt-12">
+              <Button 
+                variant="ghost" 
+                onClick={scrollToMonitoring}
+                className="gap-2"
+              >
+                View Live Monitoring
+                <ChevronDown className="h-4 w-4 animate-bounce" />
+              </Button>
+            </div>
           </div>
+        </section>
 
-          {/* Hero Section with Reward System */}
-          <HeroSection
-            batteryStatus={batteryStatus}
-            deviceId={connection.deviceId}
-            sessionId={connection.sessionId}
-            maxModeEnabled={maxModeEnabled}
-            sessionStartTime={connection.sessionStartTime}
-          />
+        {/* Live Monitoring Section */}
+        <section id="monitoring-section" className="py-16">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Live Battery Monitoring
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Real-time battery analytics and XMRT token rewards
+              </p>
+            </div>
 
-          {/* Airplane Mode Coach */}
-          <AirplaneModeCoach
-            isCharging={batteryStatus?.charging || false}
-            isAirplaneMode={networkStatus.isAirplaneMode}
-            airplaneModeDuration={networkStatus.airplaneModeDuration}
-            batteryLevel={batteryStatus?.level || 0}
-          />
-
-          {/* AI Battery Optimization Insights */}
-          <AIOptimizationInsights 
-            batteryStatus={batteryStatus}
-            deviceId={connection.deviceId}
-            sessionId={connection.sessionId}
-          />
-
-          {/* Max Charging Mode - Moved to settings area */}
-          <div className="max-w-2xl mx-auto">
-            <MaxChargingMode 
-              onModeChange={(enabled) => {
-                setMaxModeEnabled(enabled);
-                if (connection.logActivity) {
-                  connection.logActivity(
-                    'max_charging_mode',
-                    'user_action',
-                    `Maximum Charging Mode ${enabled ? 'activated' : 'deactivated'}`,
-                    { mode_enabled: enabled },
-                    'info'
-                  );
-                }
-              }}
+            {/* Hero Section with Reward System */}
+            <HeroSection
+              batteryStatus={batteryStatus}
+              deviceId={connection.deviceId}
+              sessionId={connection.sessionId}
+              maxModeEnabled={maxModeEnabled}
+              sessionStartTime={connection.sessionStartTime}
             />
-          </div>
 
-          {/* Battery Monitor */}
-          <BatteryMonitorEnhanced />
-          
-          {/* Bottom Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-            <ProductXMRT />
-            <Web3Donation deviceId={connection.deviceId} />
+            {/* Airplane Mode Coach */}
+            <AirplaneModeCoach
+              isCharging={batteryStatus?.charging || false}
+              isAirplaneMode={networkStatus.isAirplaneMode}
+              airplaneModeDuration={networkStatus.airplaneModeDuration}
+              batteryLevel={batteryStatus?.level || 0}
+            />
+
+            {/* AI Battery Optimization Insights */}
+            <AIOptimizationInsights 
+              batteryStatus={batteryStatus}
+              deviceId={connection.deviceId}
+              sessionId={connection.sessionId}
+            />
+
+            {/* Max Charging Mode */}
+            <div className="max-w-2xl mx-auto">
+              <MaxChargingMode 
+                onModeChange={(enabled) => {
+                  setMaxModeEnabled(enabled);
+                  if (connection.logActivity) {
+                    connection.logActivity(
+                      'max_charging_mode',
+                      'user_action',
+                      `Maximum Charging Mode ${enabled ? 'activated' : 'deactivated'}`,
+                      { mode_enabled: enabled },
+                      'info'
+                    );
+                  }
+                }}
+              />
+            </div>
+
+            {/* Battery Monitor */}
+            <BatteryMonitorEnhanced />
+            
+            {/* Web3 Donation */}
+            <div className="max-w-2xl mx-auto">
+              <Web3Donation deviceId={connection.deviceId} />
+            </div>
           </div>
-        </div>
+        </section>
 
         <ContactFooter />
       </div>
