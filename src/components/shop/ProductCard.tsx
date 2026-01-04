@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Zap, Cable, Cpu, Wifi } from "lucide-react";
+import { ShoppingCart, Zap, Cable, Cpu, Wifi, ExternalLink } from "lucide-react";
 import { Product, useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
@@ -28,11 +29,41 @@ const getFeatureIcon = (feature: string) => {
 };
 
 export const ProductCard = ({ product }: ProductCardProps) => {
-  const { addToCart } = useCart();
+  const { addToCart, totalItems } = useCart();
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAddToCart = () => {
+    setIsAdding(true);
     addToCart(product);
-    toast.success(`${product.name} added to cart`);
+    
+    toast.success(
+      <div className="flex items-center justify-between gap-4 w-full">
+        <div className="flex flex-col">
+          <span className="font-semibold">{product.name} added!</span>
+          <span className="text-sm text-muted-foreground">
+            {totalItems + 1} item{totalItems + 1 !== 1 ? 's' : ''} in cart
+          </span>
+        </div>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="gap-1 shrink-0"
+          onClick={() => {
+            const cartButton = document.querySelector('[data-cart-trigger]') as HTMLButtonElement;
+            cartButton?.click();
+          }}
+        >
+          View Cart
+          <ExternalLink className="h-3 w-3" />
+        </Button>
+      </div>,
+      {
+        duration: 4000,
+        position: 'bottom-right',
+      }
+    );
+    
+    setTimeout(() => setIsAdding(false), 300);
   };
 
   return (

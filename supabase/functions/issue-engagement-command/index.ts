@@ -93,22 +93,16 @@ serve(async (req) => {
 
     // Update session command counter
     if (sessionId) {
-      await supabaseClient.rpc('increment', {
-        table_name: 'device_connection_sessions',
-        row_id: sessionId,
-        column_name: 'commands_received'
-      }).catch(() => {
-        // Fallback if rpc doesn't exist
-        supabaseClient
-          .from('device_connection_sessions')
-          .update({ 
-            commands_received: supabaseClient.rpc('coalesce', { 
-              value: 'commands_received', 
-              default_val: 0 
-            }) 
-          })
-          .eq('id', sessionId);
-      });
+      try {
+        await supabaseClient.rpc('increment', {
+          table_name: 'device_connection_sessions',
+          row_id: sessionId,
+          column_name: 'commands_received'
+        });
+      } catch {
+        // Fallback if rpc doesn't exist - just log and continue
+        console.log('increment rpc not available, skipping counter update');
+      }
     }
 
     console.log('✅ Command issued:', command.id);

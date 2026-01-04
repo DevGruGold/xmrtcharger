@@ -253,10 +253,12 @@ export type Database = {
           heartbeat_ms: number | null
           id: string
           is_superduper: boolean | null
+          last_active: string | null
           last_seen: string | null
           max_concurrent_tasks: number | null
           metadata: Json
           name: string
+          provider: string | null
           role: Database["public"]["Enums"]["agent_role"]
           role_old: string | null
           skills: Json
@@ -275,10 +277,12 @@ export type Database = {
           heartbeat_ms?: number | null
           id: string
           is_superduper?: boolean | null
+          last_active?: string | null
           last_seen?: string | null
           max_concurrent_tasks?: number | null
           metadata?: Json
           name: string
+          provider?: string | null
           role: Database["public"]["Enums"]["agent_role"]
           role_old?: string | null
           skills?: Json
@@ -297,10 +301,12 @@ export type Database = {
           heartbeat_ms?: number | null
           id?: string
           is_superduper?: boolean | null
+          last_active?: string | null
           last_seen?: string | null
           max_concurrent_tasks?: number | null
           metadata?: Json
           name?: string
+          provider?: string | null
           role?: Database["public"]["Enums"]["agent_role"]
           role_old?: string | null
           skills?: Json
