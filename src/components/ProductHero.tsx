@@ -125,7 +125,7 @@ export const ProductHero = () => {
               </Button>
             </div>
 
-            <audio ref={audioRef} src="/media/voiceover.mp3" onEnded={() => setIsPlaying(false)} />
+            <audio ref={audioRef} src="/media/voiceover.mp3" loop={false} onEnded={() => setIsPlaying(false)} />
           </div>
 
           {/* Video Card */}
