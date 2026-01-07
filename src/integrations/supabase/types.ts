@@ -334,11 +334,13 @@ export type Database = {
           id: string
           metadata: Json | null
           model: string | null
+          oauth_connection_id: string | null
           occurred_at: string | null
           provider: string
           request_id: string | null
           status_code: number | null
           success: boolean | null
+          timestamp: string | null
           tokens_completion: number | null
           tokens_prompt: number | null
           tokens_total: number | null
@@ -350,11 +352,13 @@ export type Database = {
           id?: string
           metadata?: Json | null
           model?: string | null
+          oauth_connection_id?: string | null
           occurred_at?: string | null
           provider: string
           request_id?: string | null
           status_code?: number | null
           success?: boolean | null
+          timestamp?: string | null
           tokens_completion?: number | null
           tokens_prompt?: number | null
           tokens_total?: number | null
@@ -366,15 +370,55 @@ export type Database = {
           id?: string
           metadata?: Json | null
           model?: string | null
+          oauth_connection_id?: string | null
           occurred_at?: string | null
           provider?: string
           request_id?: string | null
           status_code?: number | null
           success?: boolean | null
+          timestamp?: string | null
           tokens_completion?: number | null
           tokens_prompt?: number | null
           tokens_total?: number | null
           user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_oauth_connection_id_fkey"
+            columns: ["oauth_connection_id"]
+            isOneToOne: false
+            referencedRelation: "oauth_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_tools: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1619,6 +1663,42 @@ export type Database = {
           },
         ]
       }
+      conversation_memory: {
+        Row: {
+          conversation_data: Json
+          created_at: string
+          id: string
+          messages: Json
+          metadata: Json
+          session_id: string
+          summary: string | null
+          tool_results: Json
+          updated_at: string
+        }
+        Insert: {
+          conversation_data?: Json
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json
+          session_id: string
+          summary?: string | null
+          tool_results?: Json
+          updated_at?: string
+        }
+        Update: {
+          conversation_data?: Json
+          created_at?: string
+          id?: string
+          messages?: Json
+          metadata?: Json
+          session_id?: string
+          summary?: string | null
+          tool_results?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_messages: {
         Row: {
           content: string
@@ -1764,6 +1844,27 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       corporate_license_applications: {
         Row: {
           annual_executive_compensation: number | null
@@ -1788,6 +1889,7 @@ export type Database = {
           notes: string | null
           per_employee_redistribution: number | null
           session_key: string | null
+          status: string | null
           tier_requested: string
           updated_at: string
         }
@@ -1814,6 +1916,7 @@ export type Database = {
           notes?: string | null
           per_employee_redistribution?: number | null
           session_key?: string | null
+          status?: string | null
           tier_requested?: string
           updated_at?: string
         }
@@ -1840,6 +1943,7 @@ export type Database = {
           notes?: string | null
           per_employee_redistribution?: number | null
           session_key?: string | null
+          status?: string | null
           tier_requested?: string
           updated_at?: string
         }
@@ -2952,6 +3056,41 @@ export type Database = {
         }
         Relationships: []
       }
+      eliza_chat_responses: {
+        Row: {
+          chat_session_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          response_text: string | null
+          user_query: string | null
+        }
+        Insert: {
+          chat_session_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          response_text?: string | null
+          user_query?: string | null
+        }
+        Update: {
+          chat_session_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          response_text?: string | null
+          user_query?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eliza_chat_responses_chat_session_id_fkey"
+            columns: ["chat_session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eliza_decision_reports: {
         Row: {
           community_votes: Json | null
@@ -3409,10 +3548,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "entity_relationships_source_entity_id_fkey"
+            columns: ["source_entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities_v"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "entity_relationships_target_entity_id_fkey"
             columns: ["target_entity_id"]
             isOneToOne: false
             referencedRelation: "knowledge_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relationships_target_entity_id_fkey"
+            columns: ["target_entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities_v"
             referencedColumns: ["id"]
           },
         ]
@@ -3758,6 +3911,45 @@ export type Database = {
           response_time_ms?: number | null
           status?: string
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      function_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          executive_name: string | null
+          function_name: string
+          id: number
+          parameters: Json | null
+          result_summary: string | null
+          session_id: string | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          executive_name?: string | null
+          function_name: string
+          id?: number
+          parameters?: Json | null
+          result_summary?: string | null
+          session_id?: string | null
+          success?: boolean
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          executive_name?: string | null
+          function_name?: string
+          id?: number
+          parameters?: Json | null
+          result_summary?: string | null
+          session_id?: string | null
+          success?: boolean
         }
         Relationships: []
       }
@@ -5420,6 +5612,7 @@ export type Database = {
           entity_type: string
           id: string
           metadata: Json | null
+          type: string | null
           updated_at: string
         }
         Insert: {
@@ -5430,6 +5623,7 @@ export type Database = {
           entity_type: string
           id?: string
           metadata?: Json | null
+          type?: string | null
           updated_at?: string
         }
         Update: {
@@ -5440,6 +5634,7 @@ export type Database = {
           entity_type?: string
           id?: string
           metadata?: Json | null
+          type?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -5484,10 +5679,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "knowledge_graph_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities_v"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "knowledge_graph_related_entity_id_fkey"
             columns: ["related_entity_id"]
             isOneToOne: false
             referencedRelation: "knowledge_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_graph_related_entity_id_fkey"
+            columns: ["related_entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities_v"
             referencedColumns: ["id"]
           },
         ]
@@ -5623,6 +5832,27 @@ export type Database = {
           },
         ]
       }
+      long_term_memory_packs: {
+        Row: {
+          created_at: string
+          id: string
+          summary: string
+          theme: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          summary: string
+          theme: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          summary?: string
+          theme?: string
+        }
+        Relationships: []
+      }
       manus_token_usage: {
         Row: {
           created_at: string
@@ -5657,7 +5887,9 @@ export type Database = {
         Row: {
           content: string
           context_type: string
+          created_at: string
           embedding: number[] | null
+          embedding_v_768: string | null
           id: string
           importance_score: number | null
           metadata: Json | null
@@ -5668,7 +5900,9 @@ export type Database = {
         Insert: {
           content: string
           context_type: string
+          created_at?: string
           embedding?: number[] | null
+          embedding_v_768?: string | null
           id?: string
           importance_score?: number | null
           metadata?: Json | null
@@ -5679,7 +5913,9 @@ export type Database = {
         Update: {
           content?: string
           context_type?: string
+          created_at?: string
           embedding?: number[] | null
+          embedding_v_768?: string | null
           id?: string
           importance_score?: number | null
           metadata?: Json | null
@@ -5688,6 +5924,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      message_embeddings_new: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          message_id: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          message_id: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          message_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_embeddings_new_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "messages_new"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -5712,6 +5977,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      messages_new: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: number
+          role: string
+          tokens: number | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: number
+          role: string
+          tokens?: number | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: number
+          role?: string
+          tokens?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_new_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mining_updates: {
         Row: {
@@ -5926,14 +6226,22 @@ export type Database = {
           account_email: string | null
           connected_at: string | null
           created_at: string | null
+          error_count: number | null
+          expires_at: string | null
           id: string
           is_active: boolean | null
+          last_error: string | null
+          last_refreshed_at: string | null
+          last_used_at: string | null
           last_verified: string | null
           metadata: Json | null
           provider: string
+          provider_email: string | null
+          provider_user_id: string | null
           refresh_token: string | null
           scopes: string[] | null
           token_expires_at: string | null
+          token_type: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -5942,14 +6250,22 @@ export type Database = {
           account_email?: string | null
           connected_at?: string | null
           created_at?: string | null
+          error_count?: number | null
+          expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_error?: string | null
+          last_refreshed_at?: string | null
+          last_used_at?: string | null
           last_verified?: string | null
           metadata?: Json | null
           provider: string
+          provider_email?: string | null
+          provider_user_id?: string | null
           refresh_token?: string | null
           scopes?: string[] | null
           token_expires_at?: string | null
+          token_type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -5958,14 +6274,22 @@ export type Database = {
           account_email?: string | null
           connected_at?: string | null
           created_at?: string | null
+          error_count?: number | null
+          expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_error?: string | null
+          last_refreshed_at?: string | null
+          last_used_at?: string | null
           last_verified?: string | null
           metadata?: Json | null
           provider?: string
+          provider_email?: string | null
+          provider_user_id?: string | null
           refresh_token?: string | null
           scopes?: string[] | null
           token_expires_at?: string | null
+          token_type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -6989,6 +7313,24 @@ export type Database = {
           status_code?: number | null
           timestamp?: string | null
           tokens_used?: number | null
+        }
+        Relationships: []
+      }
+      session_entity_links: {
+        Row: {
+          added_at: string
+          entity_id: string
+          session_id: string
+        }
+        Insert: {
+          added_at?: string
+          entity_id: string
+          session_id: string
+        }
+        Update: {
+          added_at?: string
+          entity_id?: string
+          session_id?: string
         }
         Relationships: []
       }
@@ -10327,6 +10669,45 @@ export type Database = {
           total_runs: number | null
           workflow_category: string | null
           workflow_name: string | null
+        }
+        Relationships: []
+      }
+      knowledge_entities_v: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          description: string | null
+          entity_name: string | null
+          entity_type: string | null
+          id: string | null
+          metadata: Json | null
+          name: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string | null
+          metadata?: Json | null
+          name?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          description?: string | null
+          entity_name?: string | null
+          entity_type?: string | null
+          id?: string | null
+          metadata?: Json | null
+          name?: string | null
+          type?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

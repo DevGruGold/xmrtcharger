@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BatteryStatus, ChargingSession, ChargingSpeed, DeviceInfo } from '@/types/battery';
 import { DrainAnalysis } from '@/types/batteryDrain';
 import { useToast } from '@/components/ui/use-toast';
@@ -25,6 +25,9 @@ export const useBattery = (options?: UseBatteryOptions) => {
   const [chargingStartLevel, setChargingStartLevel] = useState<number | null>(null);
   const [drainAnalysis, setDrainAnalysis] = useState<DrainAnalysis | null>(null);
   const { toast } = useToast();
+  
+  // Ref to track initial load - prevents toast on page load
+  const isInitialLoad = useRef(true);
   
   // Use provided IDs or null - don't generate random UUIDs that don't exist in DB
   const deviceId = options?.deviceId || null;
@@ -143,11 +146,14 @@ export const useBattery = (options?: UseBatteryOptions) => {
               );
             }
             
-            toast({
-              title: `${chargingSpeed?.charAt(0).toUpperCase()}${chargingSpeed?.slice(1)} charging detected!`,
-              description: "Consider enabling airplane mode or battery saver for even faster charging.",
-              duration: 5000,
-            });
+            // Only show toast if NOT initial load and we have a valid charging speed
+            if (!isInitialLoad.current && chargingSpeed) {
+              toast({
+                title: `${chargingSpeed.charAt(0).toUpperCase()}${chargingSpeed.slice(1)} charging detected!`,
+                description: "Consider enabling airplane mode or battery saver for even faster charging.",
+                duration: 5000,
+              });
+            }
           }
           
           // Save session when charging stops
@@ -177,6 +183,8 @@ export const useBattery = (options?: UseBatteryOptions) => {
 
         // Initial status
         updateBatteryStatus();
+        // Mark initial load complete after first read
+        isInitialLoad.current = false;
 
         // Add event listeners
         battery.addEventListener('chargingchange', updateBatteryStatus);
