@@ -91,16 +91,30 @@ serve(async (req) => {
       }
     }
 
-    // Record battery reading
+    // Record battery reading - round numeric values to integers for database compatibility
+    const safeBatteryLevel = Math.round(batteryLevel);
+    const safeChargingTime = chargingTimeRemaining !== null && isFinite(chargingTimeRemaining) 
+      ? Math.round(chargingTimeRemaining) 
+      : null;
+    const safeDischargingTime = dischargingTimeRemaining !== null && isFinite(dischargingTimeRemaining) 
+      ? Math.round(dischargingTimeRemaining) 
+      : null;
+
+    console.log('📊 Inserting battery reading:', {
+      safeBatteryLevel,
+      safeChargingTime,
+      safeDischargingTime,
+    });
+
     const { error: readingError } = await supabaseClient
       .from('battery_readings')
       .insert({
         device_id: deviceId,
         session_id: safeSessionId,
-        battery_level: batteryLevel,
+        battery_level: safeBatteryLevel,
         is_charging: isCharging,
-        charging_time_remaining: chargingTimeRemaining,
-        discharging_time_remaining: dischargingTimeRemaining,
+        charging_time_remaining: safeChargingTime,
+        discharging_time_remaining: safeDischargingTime,
         charging_speed: chargingSpeed,
         temperature_impact: temperatureImpact,
         metadata: metadata || {}
