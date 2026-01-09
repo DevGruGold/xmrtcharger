@@ -24,6 +24,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     );
 
+    let body: any;
+    try {
+      body = await req.json();
+    } catch (parseError) {
+      console.error('❌ Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { 
       deviceId, 
       sessionId, 
@@ -34,95 +45,149 @@ serve(async (req) => {
       chargingSpeed,
       temperatureImpact,
       metadata 
-    } = await req.json();
+    } = body;
 
     console.log('📋 record-battery-data payload:', {
       deviceId,
       sessionId,
-      sessionIdType: typeof sessionId,
       batteryLevel,
+      batteryLevelType: typeof batteryLevel,
       isCharging,
     });
 
-    // Validate UUIDs
-    if (!isValidUUID(deviceId)) {
-      console.error('Invalid deviceId format:', deviceId);
+    // === VALIDATION ===
+    
+    // deviceId: required UUID
+    if (!deviceId || typeof deviceId !== 'string' || !isValidUUID(deviceId)) {
+      console.error('❌ Invalid deviceId:', deviceId);
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid deviceId format. Must be a valid UUID.',
-          received: deviceId 
+          error: 'Invalid deviceId. Must be a valid UUID.',
+          received: deviceId,
+          receivedType: typeof deviceId
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (sessionId && !isValidUUID(sessionId)) {
-      console.error('Invalid sessionId format:', sessionId);
+    // batteryLevel: required finite number
+    if (typeof batteryLevel !== 'number' || !isFinite(batteryLevel)) {
+      console.error('❌ Invalid batteryLevel:', batteryLevel, typeof batteryLevel);
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid sessionId format. Must be a valid UUID or null.',
-          received: sessionId 
+          error: 'Invalid batteryLevel. Must be a finite number.',
+          received: batteryLevel,
+          receivedType: typeof batteryLevel
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Normalize / validate sessionId (clients may send a stale connection session UUID)
+    // isCharging: required boolean
+    if (typeof isCharging !== 'boolean') {
+      console.error('❌ Invalid isCharging:', isCharging, typeof isCharging);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid isCharging. Must be a boolean.',
+          received: isCharging,
+          receivedType: typeof isCharging
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // === NORMALIZATION ===
+    
+    // batteryLevel: clamp to 0-100 and round
+    const safeBatteryLevel = Math.round(Math.max(0, Math.min(100, batteryLevel)));
+
+    // chargingTimeRemaining: null if not a valid positive finite number
+    const safeChargingTime = (
+      typeof chargingTimeRemaining === 'number' && 
+      isFinite(chargingTimeRemaining) && 
+      chargingTimeRemaining >= 0
+    ) ? Math.round(chargingTimeRemaining) : null;
+
+    // dischargingTimeRemaining: null if not a valid positive finite number
+    const safeDischargingTime = (
+      typeof dischargingTimeRemaining === 'number' && 
+      isFinite(dischargingTimeRemaining) && 
+      dischargingTimeRemaining >= 0
+    ) ? Math.round(dischargingTimeRemaining) : null;
+
+    // sessionId: normalize to null if empty/undefined, validate UUID if provided
     let safeSessionId: string | null = null;
+    const rawSessionId = sessionId;
 
-    if (sessionId === undefined || sessionId === null || sessionId === '') {
-      safeSessionId = null;
-    } else if (typeof sessionId === 'string' && isValidUUID(sessionId)) {
-      const { data: sessionRow, error: sessionLookupError } = await supabaseClient
-        .from('battery_sessions')
-        .select('id')
-        .eq('id', sessionId)
-        .maybeSingle();
-
-      if (sessionLookupError) {
-        console.error('Error looking up battery_session:', sessionLookupError);
-        // Fail open to null so we can still record the reading
+    if (sessionId && typeof sessionId === 'string' && sessionId.trim() !== '') {
+      if (!isValidUUID(sessionId)) {
+        // Non-UUID sessionId - accept but drop to null (store in metadata for debugging)
+        console.warn('⚠️ Non-UUID sessionId provided, dropping to null:', sessionId);
         safeSessionId = null;
-      } else if (sessionRow?.id) {
-        safeSessionId = sessionId;
       } else {
-        console.warn('Dropping unknown session_id (no matching battery_sessions row):', sessionId);
-        safeSessionId = null;
+        // Valid UUID - check if it exists in battery_sessions
+        const { data: sessionRow, error: sessionLookupError } = await supabaseClient
+          .from('battery_sessions')
+          .select('id')
+          .eq('id', sessionId)
+          .maybeSingle();
+
+        if (sessionLookupError) {
+          console.error('⚠️ Error looking up battery_session:', sessionLookupError);
+          safeSessionId = null;
+        } else if (sessionRow?.id) {
+          safeSessionId = sessionId;
+        } else {
+          console.warn('⚠️ Session not found in battery_sessions, dropping to null:', sessionId);
+          safeSessionId = null;
+        }
       }
     }
 
-    // Record battery reading - round numeric values to integers for database compatibility
-    const safeBatteryLevel = Math.round(batteryLevel);
-    const safeChargingTime = chargingTimeRemaining !== null && isFinite(chargingTimeRemaining) 
-      ? Math.round(chargingTimeRemaining) 
-      : null;
-    const safeDischargingTime = dischargingTimeRemaining !== null && isFinite(dischargingTimeRemaining) 
-      ? Math.round(dischargingTimeRemaining) 
-      : null;
+    // metadata: ensure it's a plain object
+    const safeMetadata = (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) 
+      ? { ...metadata, raw_session_id: rawSessionId || null }
+      : { raw_session_id: rawSessionId || null };
 
-    console.log('📊 Inserting battery reading:', {
+    console.log('📊 Normalized values for insert:', {
       safeBatteryLevel,
       safeChargingTime,
       safeDischargingTime,
+      safeSessionId,
     });
+
+    const insertPayload = {
+      device_id: deviceId,
+      session_id: safeSessionId,
+      battery_level: safeBatteryLevel,
+      is_charging: isCharging,
+      charging_time_remaining: safeChargingTime,
+      discharging_time_remaining: safeDischargingTime,
+      charging_speed: chargingSpeed || null,
+      temperature_impact: temperatureImpact || null,
+      metadata: safeMetadata
+    };
 
     const { error: readingError } = await supabaseClient
       .from('battery_readings')
-      .insert({
-        device_id: deviceId,
-        session_id: safeSessionId,
-        battery_level: safeBatteryLevel,
-        is_charging: isCharging,
-        charging_time_remaining: safeChargingTime,
-        discharging_time_remaining: safeDischargingTime,
-        charging_speed: chargingSpeed,
-        temperature_impact: temperatureImpact,
-        metadata: metadata || {}
-      });
+      .insert(insertPayload);
 
     if (readingError) {
-      console.error('Error inserting battery reading:', readingError);
-      throw readingError;
+      console.error('❌ Error inserting battery reading:', {
+        code: readingError.code,
+        message: readingError.message,
+        details: readingError.details,
+        hint: readingError.hint,
+        payload: insertPayload
+      });
+      return new Response(
+        JSON.stringify({ 
+          error: readingError.message,
+          code: readingError.code,
+          details: readingError.details
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Calculate health metrics from recent sessions
