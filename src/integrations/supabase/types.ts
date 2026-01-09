@@ -400,6 +400,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          parameters: Json
           updated_at: string | null
         }
         Insert: {
@@ -409,6 +410,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          parameters?: Json
           updated_at?: string | null
         }
         Update: {
@@ -418,6 +420,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          parameters?: Json
           updated_at?: string | null
         }
         Relationships: []
@@ -5606,34 +5609,46 @@ export type Database = {
       knowledge_entities: {
         Row: {
           confidence_score: number | null
+          content: string | null
           created_at: string
           description: string | null
           entity_name: string
           entity_type: string
           id: string
           metadata: Json | null
+          name: string | null
+          search_vector: unknown
+          tags: string[] | null
           type: string | null
           updated_at: string
         }
         Insert: {
           confidence_score?: number | null
+          content?: string | null
           created_at?: string
           description?: string | null
           entity_name: string
           entity_type: string
           id?: string
           metadata?: Json | null
+          name?: string | null
+          search_vector?: unknown
+          tags?: string[] | null
           type?: string | null
           updated_at?: string
         }
         Update: {
           confidence_score?: number | null
+          content?: string | null
           created_at?: string
           description?: string | null
           entity_name?: string
           entity_type?: string
           id?: string
           metadata?: Json | null
+          name?: string | null
+          search_vector?: unknown
+          tags?: string[] | null
           type?: string | null
           updated_at?: string
         }
@@ -5700,6 +5715,209 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      knowledge_page_embeddings: {
+        Row: {
+          chunk_index: number | null
+          created_at: string
+          embedding: string | null
+          page_id: string
+          section_id: string | null
+        }
+        Insert: {
+          chunk_index?: number | null
+          created_at?: string
+          embedding?: string | null
+          page_id: string
+          section_id?: string | null
+        }
+        Update: {
+          chunk_index?: number | null
+          created_at?: string
+          embedding?: string | null
+          page_id?: string
+          section_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_page_embeddings_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: true
+            referencedRelation: "knowledge_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_page_entities: {
+        Row: {
+          created_at: string
+          entity_id: string
+          id: string
+          page_id: string
+          relation: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          id?: string
+          page_id: string
+          relation?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          id?: string
+          page_id?: string
+          relation?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_page_entities_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_page_entities_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_entities_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_page_entities_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_page_links: {
+        Row: {
+          created_at: string
+          id: string
+          relation: string
+          source_page_id: string
+          target_page_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          relation?: string
+          source_page_id: string
+          target_page_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          relation?: string
+          source_page_id?: string
+          target_page_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_page_links_source_page_id_fkey"
+            columns: ["source_page_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_page_links_target_page_id_fkey"
+            columns: ["target_page_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_page_revisions: {
+        Row: {
+          content: string | null
+          created_at: string
+          editor_user_id: string | null
+          id: string
+          page_id: string
+          summary: string | null
+          title: string
+          version: number
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          editor_user_id?: string | null
+          id?: string
+          page_id: string
+          summary?: string | null
+          title: string
+          version: number
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          editor_user_id?: string | null
+          id?: string
+          page_id?: string
+          summary?: string | null
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_page_revisions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_pages: {
+        Row: {
+          api_source: Json | null
+          content: string | null
+          created_at: string
+          external_id: string | null
+          id: string
+          owner_user_id: string | null
+          slug: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          api_source?: Json | null
+          content?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          owner_user_id?: string | null
+          slug: string
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          api_source?: Json | null
+          content?: string | null
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          owner_user_id?: string | null
+          slug?: string
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
       }
       lead_qualification_signals: {
         Row: {
@@ -10855,6 +11073,32 @@ export type Database = {
         }
         Relationships: []
       }
+      system_overview: {
+        Row: {
+          active_device_sessions: number | null
+          agents_busy: number | null
+          agents_idle: number | null
+          agents_last_update: string | null
+          agents_offline: number | null
+          agents_total: number | null
+          device_sessions_last_update: string | null
+          ef_avg_exec_ms_24h: number | null
+          ef_events_24h: number | null
+          ef_last_event: string | null
+          metrics_last_point: string | null
+          metrics_points_24h: number | null
+          services_last_checked: string | null
+          services_running: number | null
+          services_tracked: number | null
+          snapshot_at: string | null
+          tasks_active: number | null
+          tasks_blocked: number | null
+          tasks_completed: number | null
+          tasks_last_update: string | null
+          tasks_total: number | null
+        }
+        Relationships: []
+      }
       task_throughput_daily: {
         Row: {
           day: string | null
@@ -11530,6 +11774,10 @@ export type Database = {
       is_superadmin: { Args: { _user_id: string }; Returns: boolean }
       is_valid_jsonb: { Args: { v: Json }; Returns: boolean }
       jsonb_shallow_diff: { Args: { new_j: Json; old_j: Json }; Returns: Json }
+      kb_link_page_entity: {
+        Args: { p_entity_id: string; p_page_id: string; p_relation?: string }
+        Returns: undefined
+      }
       lease_job: {
         Args: { p_lease_seconds?: number; p_queue_name: string }
         Returns: {
@@ -11734,6 +11982,22 @@ export type Database = {
       }
       run_opportunity_scanner: { Args: never; Returns: undefined }
       safe_refresh_recent_messages: { Args: never; Returns: undefined }
+      search_knowledge: {
+        Args: {
+          limit_count?: number
+          offset_count?: number
+          query_text: string
+        }
+        Returns: {
+          confidence_score: number
+          created_at: string
+          description: string
+          entity_name: string
+          entity_type: string
+          id: string
+          rank: number
+        }[]
+      }
       service_status_change_type: {
         Args: { new_j: Json; old_j: Json }
         Returns: string
@@ -11810,6 +12074,37 @@ export type Database = {
           p_os?: string
         }
         Returns: string
+      }
+      upsert_knowledge_page: {
+        Args: {
+          p_content: string
+          p_owner_user_id?: string
+          p_slug: string
+          p_summary: string
+          p_tags?: string[]
+          p_title: string
+          p_visibility?: string
+        }
+        Returns: {
+          api_source: Json | null
+          content: string | null
+          created_at: string
+          external_id: string | null
+          id: string
+          owner_user_id: string | null
+          slug: string
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "knowledge_pages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
